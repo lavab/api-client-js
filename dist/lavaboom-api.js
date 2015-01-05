@@ -24,6 +24,13 @@
       }
       this.url = url;
       this.token = token;
+      this.accounts.that = this;
+      this.accounts.create.that = this;
+      this.accounts.reserve.that = this;
+      this.contacts.that = this;
+      this.emails.that = this;
+      this.keys.that = this;
+      this.tokens.that = this;
     }
 
     Lavaboom.prototype.get = function(path, data, options) {
@@ -54,14 +61,14 @@
     Lavaboom.prototype.accounts = {
       create: {
         invited: function(query) {
-          return this.post("/accounts", {
+          return this.that.post("/accounts", {
             username: query.username,
             password: query.password,
             token: query.token
           });
         },
         classic: function(query) {
-          return this.post("/accounts", {
+          return this.that.post("/accounts", {
             username: query.username,
             password: query.password,
             alt_email: query.email
@@ -70,37 +77,37 @@
       },
       reserve: {
         queue: function(query) {
-          return this.post("/accounts", {
+          return this.that.post("/accounts", {
             alt_email: query.email
           });
         },
         username: function(query) {
-          return this.post("/accounts", {
+          return this.that.post("/accounts", {
             username: query.username,
             alt_email: query.email
           });
         }
       },
       get: function(who) {
-        return this.get("/accounts/" + who);
+        return this.that.get("/accounts/" + who);
       },
       update: function(who, what) {
-        return this.put("/accounts/" + who, what);
+        return this.that.put("/accounts/" + who, what);
       },
       "delete": function(who) {
-        return this["delete"]("/accounts/" + who);
+        return this.that["delete"]("/accounts/" + who);
       },
       wipeData: function(who) {
-        return this.post("/accounts/" + who("/wipe-data"));
+        return this.that.post("/accounts/" + who("/wipe-data"));
       }
     };
 
     Lavaboom.prototype.contacts = {
       list: function() {
-        return this.get("/contacts");
+        return this.that.get("/contacts");
       },
       create: function(query) {
-        return this.post("/contacts", {
+        return this.that.post("/contacts", {
           data: query.data,
           name: query.name,
           encoding: query.encoding,
@@ -110,10 +117,10 @@
         });
       },
       get: function(id) {
-        return this.get("/contacts/" + id);
+        return this.that.get("/contacts/" + id);
       },
       update: function(id, query) {
-        return this.put("/contacts/" + id, {
+        return this.that.put("/contacts/" + id, {
           data: query.data,
           name: query.name,
           encoding: query.encoding,
@@ -123,7 +130,7 @@
         });
       },
       "delete": function(id) {
-        return this["delete"]("/contacts/" + id);
+        return this.that["delete"]("/contacts/" + id);
       }
     };
 
@@ -134,13 +141,13 @@
         if (query && _.size(query) > 0) {
           url += "?" + encodeQueryData(query);
         }
-        return this.get(url);
+        return this.that.get(url);
       },
       get: function(id) {
-        return this.get("/emails/" + id);
+        return this.that.get("/emails/" + id);
       },
       create: function(query) {
-        return this.post("/emails", {
+        return this.that.post("/emails", {
           to: query.to,
           bcc: query.bcc,
           reply_to: query.reply_to,
@@ -158,19 +165,19 @@
         });
       },
       "delete": function(id) {
-        return this["delete"]("/emails/" + id);
+        return this.that["delete"]("/emails/" + id);
       }
     };
 
     Lavaboom.prototype.keys = {
       list: function(name) {
-        return this.get("/keys?user=" + name);
+        return this.that.get("/keys?user=" + name);
       },
       get: function(id) {
-        return this.get("/keys/" + encodeURIComponent(id));
+        return this.that.get("/keys/" + encodeURIComponent(id));
       },
       create: function(key) {
-        return this.post("/keys", {
+        return this.that.post("/keys", {
           key: key
         });
       }
@@ -178,13 +185,13 @@
 
     Lavaboom.prototype.tokens = {
       getCurrent: function() {
-        return this.get("/tokens");
+        return this.that.get("/tokens");
       },
       get: function(id) {
-        return this.get("/tokens/" + id);
+        return this.that.get("/tokens/" + id);
       },
       create: function(query) {
-        return this.post("/tokens", {
+        return this.that.post("/tokens", {
           username: query.username,
           password: query.password,
           type: query.type,
@@ -192,10 +199,10 @@
         });
       },
       deleteCurrent: function() {
-        return this["delete"]("/tokens");
+        return this.that["delete"]("/tokens");
       },
       "delete": function(id) {
-        return this["delete"]("/tokens/" + id);
+        return this.that["delete"]("/tokens/" + id);
       }
     };
 

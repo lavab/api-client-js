@@ -15,6 +15,14 @@ class @Lavaboom
         @url = url
         @token = token
 
+        @accounts.that = this
+        @accounts.create.that = this
+        @accounts.reserve.that = this
+        @contacts.that = this
+        @emails.that = this
+        @keys.that = this
+        @tokens.that = this
+
     get: (path, data, options) ->
         if @authToken
             if not options
@@ -35,37 +43,37 @@ class @Lavaboom
     accounts:
         create:
             invited: (query) ->
-                @post "/accounts",
+                @that.post "/accounts",
                     username: query.username
                     password: query.password
                     token: query.token
             classic: (query) ->
-                @post "/accounts",
+                @that.post "/accounts",
                     username: query.username
                     password: query.password
                     alt_email: query.email
         reserve:
             queue: (query) ->
-                @post "/accounts",
+                @that.post "/accounts",
                     alt_email: query.email
             username: (query) ->
-                @post "/accounts",
+                @that.post "/accounts",
                     username: query.username
                     alt_email: query.email
         get: (who) ->
-            @get "/accounts/" + who
+            @that.get "/accounts/" + who
         update: (who, what) ->
-            @put "/accounts/" + who, what
+            @that.put "/accounts/" + who, what
         delete: (who) ->
-            @delete "/accounts/" + who
+            @that.delete "/accounts/" + who
         wipeData: (who) ->
-            @post "/accounts/" + who "/wipe-data"
+            @that.post "/accounts/" + who "/wipe-data"
 
     contacts:
         list: () ->
-            @get "/contacts"
+            @that.get "/contacts"
         create: (query) ->
-            @post "/contacts",
+            @that.post "/contacts",
                 data: query.data
                 name: query.name
                 encoding: query.encoding
@@ -73,9 +81,9 @@ class @Lavaboom
                 version_minor: query.version_minor
                 pgp_fingerprints: query.pgp_fingerprints
         get: (id) ->
-            @get "/contacts/" + id
+            @that.get "/contacts/" + id
         update: (id, query) ->
-            @put "/contacts/" + id,
+            @that.put "/contacts/" + id,
                 data: query.data
                 name: query.name
                 encoding: query.encoding
@@ -83,22 +91,19 @@ class @Lavaboom
                 version_minor: query.version_minor
                 pgp_fingerprints: query.pgp_fingerprints
         delete: (id) ->
-            @delete "/contacts/" + id
+            @that.delete "/contacts/" + id
 
     emails:
         list: (query) ->
-            # sort
-            # offset
-            # limit
             url = "/emails"
             if query and _.size(query) > 0
                 url += "?" + encodeQueryData(query)
 
-            @get url
+            @that.get url
         get: (id) ->
-            @get "/emails/" + id
+            @that.get "/emails/" + id
         create: (query) ->
-            @post "/emails",
+            @that.post "/emails",
                 to: query.to
                 bcc: query.bcc
                 reply_to: query.reply_to
@@ -114,29 +119,29 @@ class @Lavaboom
                 attachments: query.attachments
                 pgp_fingerprints: query.pgp_fingerprints
         delete: (id) ->
-            @delete "/emails/" + id
+            @that.delete "/emails/" + id
 
     keys:
         list: (name) ->
-            @get "/keys?user=" + name
+            @that.get "/keys?user=" + name
         get: (id) ->
-            @get "/keys/" + encodeURIComponent(id)
+            @that.get "/keys/" + encodeURIComponent(id)
         create: (key) ->
-            @post "/keys",
+            @that.post "/keys",
                 key: key
 
     tokens:
         getCurrent: () ->
-            @get "/tokens"
+            @that.get "/tokens"
         get: (id) ->
-            @get "/tokens/" + id
+            @that.get "/tokens/" + id
         create: (query) ->
-            @post "/tokens",
+            @that.post "/tokens",
                 username: query.username
                 password: query.password
                 type: query.type
                 token: query.token
         deleteCurrent: () ->
-            @delete "/tokens"
+            @that.delete "/tokens"
         delete: (id) ->
-            @delete "/tokens/" + id
+            @that.delete "/tokens/" + id

@@ -1,0 +1,24 @@
+{
+  "name": "api-client-js",
+  "version": "0.1.0",
+  "description": "lavaboom.io API client",
+  "main": "src/index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lavab/api-client-js.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lavab/api-client-js/issues"
+  },
+  "homepage": "https://github.com/lavab/api-client-js",
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-coffee": "^2.2.0",
+    "gulp-include": "^1.1.0"
+  }
+}

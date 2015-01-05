@@ -1,3 +1,7 @@
+`
+//= require vendor/qwest.min.js
+`
+
 encodeQueryData = (data) ->
     ret = []
     for d in data
@@ -12,6 +16,14 @@ class @Lavaboom
         @token = token
 
     get: (path, data, options) ->
+        if @authToken
+            if not options
+                options = {}
+
+            if not options.headers
+                options.headers = {}
+
+            options.headers["Authorization"] = "Bearer " + authToken
         qwest.get @url + path, data, options
     post: (path, data, options) ->
         qwest.get @url + path, data, options

@@ -1,0 +1,27 @@
+{
+  "name": "lavaboom",
+  "version": "0.1.0",
+  "homepage": "https://github.com/lavab/api-client-js",
+  "authors": [
+    "Piotr Zduniak <piotr@zduniak.net>"
+  ],
+  "description": "Lavaboom API client",
+  "main": "dist/lavaboom-api.js",
+  "keywords": [
+    "lavaboom",
+    "api",
+    "rest",
+    "email",
+    "secure",
+    "encrypted",
+    "client"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

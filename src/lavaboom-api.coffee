@@ -45,13 +45,13 @@ class @Lavaboom
                     password: query.password
                     alt_email: query.email
         reserve:
-            queue: (email) ->
+            queue: (query) ->
                 @post "/accounts",
-                    alt_email: email
-            username: (username, email) ->
+                    alt_email: query.email
+            username: (query) ->
                 @post "/accounts",
-                    username: username
-                    alt_email: email
+                    username: query.username
+                    alt_email: query.email
         get: (who) ->
             @get "/accounts/" + who
         update: (who, what) ->

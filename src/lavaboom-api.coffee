@@ -34,11 +34,11 @@ class @Lavaboom
             options.headers["Authorization"] = "Bearer " + authToken
         qwest.get @url + path, data, options
     post: (path, data, options) ->
-        qwest.get @url + path, data, options
+        qwest.post @url + path, data, options
     put: (path, data, options) ->
-        qwest.get @url + path, data, options
+        qwest.put @url + path, data, options
     delete: (path, data, options) ->
-        qwest.get @url + path, data, options
+        qwest.delete @url + path, data, options
 
     accounts:
         create:

@@ -47,15 +47,15 @@
     };
 
     Lavaboom.prototype.post = function(path, data, options) {
-      return qwest.get(this.url + path, data, options);
+      return qwest.post(this.url + path, data, options);
     };
 
     Lavaboom.prototype.put = function(path, data, options) {
-      return qwest.get(this.url + path, data, options);
+      return qwest.put(this.url + path, data, options);
     };
 
     Lavaboom.prototype["delete"] = function(path, data, options) {
-      return qwest.get(this.url + path, data, options);
+      return qwest["delete"](this.url + path, data, options);
     };
 
     Lavaboom.prototype.accounts = {

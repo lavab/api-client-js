@@ -41,7 +41,7 @@ class @Lavaboom
 
         options.responseType = "json"
 
-        qwest.get @url + path, data, options
+        qwest.post @url + path, data, options
 
     put: (path, data, options) ->
         if not options
@@ -49,15 +49,15 @@ class @Lavaboom
 
         options.responseType = "json"
 
-        qwest.get @url + path, data, options
+        qwest.put @url + path, data, options
 
     delete: (path, data, options) ->
         if not options
             options = {}
 
         options.responseType = "json"
-    
-        qwest.get @url + path, data, options
+
+        qwest.delete @url + path, data, options
 
     info: () ->
         @get "/"

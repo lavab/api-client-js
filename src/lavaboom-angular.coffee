@@ -1,18 +1,26 @@
 angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider = () ->
     url = null
-    token = null
+    specialToken = null
+    authToken = null
     api = null
 
     this.setSpecialToken = (newToken) ->
-        token = newToken
+        specialToken = newToken
+
+    this.setAuthToken = (newToken) ->
+        authToken = newToken
 
     this.setURL = (newURL) ->
         url = newURL
 
     this.$get = ($q) ->
-        api = new Lavaboom(url, token)
+        api = new Lavaboom(url, specialToken)
+        api.authToken = authToken
 
         service =
+            setAuthToken: (newToken) ->
+                api.authToken = token
+
             info: () ->
                 $q (resolve, reject) ->
                     api.info()

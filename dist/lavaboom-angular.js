@@ -2,20 +2,28 @@
   var LavaboomAPIProvider;
 
   angular.module("lavaboom.api", []).provider("LavaboomAPI", LavaboomAPIProvider = function() {
-    var api, token, url;
+    var api, authToken, specialToken, url;
     url = null;
-    token = null;
+    specialToken = null;
+    authToken = null;
     api = null;
     this.setSpecialToken = function(newToken) {
-      return token = newToken;
+      return specialToken = newToken;
+    };
+    this.setAuthToken = function(newToken) {
+      return authToken = newToken;
     };
     this.setURL = function(newURL) {
       return url = newURL;
     };
     this.$get = function($q) {
       var service;
-      api = new Lavaboom(url, token);
+      api = new Lavaboom(url, specialToken);
+      api.authToken = authToken;
       service = {
+        setAuthToken: function(newToken) {
+          return api.authToken = token;
+        },
         info: function() {
           return $q(function(resolve, reject) {
             return api.info().then(function(e) {

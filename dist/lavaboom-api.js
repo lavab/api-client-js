@@ -34,28 +34,43 @@
     }
 
     Lavaboom.prototype.get = function(path, data, options) {
-      if (this.authToken) {
-        if (!options) {
-          options = {};
-        }
-        if (!options.headers) {
-          options.headers = {};
-        }
+      if (!options) {
+        options = {};
+      }
+      options.responseType = "json";
+      if (this.authToken && !options.headers) {
+        options.headers = {};
         options.headers["Authorization"] = "Bearer " + authToken;
       }
       return qwest.get(this.url + path, data, options);
     };
 
     Lavaboom.prototype.post = function(path, data, options) {
+      if (!options) {
+        options = {};
+      }
+      options.responseType = "json";
       return qwest.get(this.url + path, data, options);
     };
 
     Lavaboom.prototype.put = function(path, data, options) {
+      if (!options) {
+        options = {};
+      }
+      options.responseType = "json";
       return qwest.get(this.url + path, data, options);
     };
 
     Lavaboom.prototype["delete"] = function(path, data, options) {
+      if (!options) {
+        options = {};
+      }
+      options.responseType = "json";
       return qwest.get(this.url + path, data, options);
+    };
+
+    Lavaboom.prototype.info = function() {
+      return this.get("/");
     };
 
     Lavaboom.prototype.accounts = {

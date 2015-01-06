@@ -15,9 +15,16 @@
     this.$get = function($q) {
       var service;
       api = new Lavaboom(url, token);
-      console.log(Lavaboom);
-      console.log(api);
       service = {
+        info: function() {
+          return $q(function(resolve, reject) {
+            return api.info().then(function(e) {
+              return resolve(e);
+            })["catch"](function(e) {
+              return reject(e);
+            });
+          });
+        },
         accounts: {
           create: {
             invited: function(query) {

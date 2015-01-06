@@ -24,21 +24,43 @@ class @Lavaboom
         @tokens.that = this
 
     get: (path, data, options) ->
-        if @authToken
-            if not options
-                options = {}
+        if not options
+            options = {}
 
-            if not options.headers
-                options.headers = {}
+        options.responseType = "json"
 
+        if @authToken and not options.headers
+            options.headers = {}
             options.headers["Authorization"] = "Bearer " + authToken
+
         qwest.get @url + path, data, options
+
     post: (path, data, options) ->
+        if not options
+            options = {}
+
+        options.responseType = "json"
+
         qwest.get @url + path, data, options
+
     put: (path, data, options) ->
+        if not options
+            options = {}
+
+        options.responseType = "json"
+
         qwest.get @url + path, data, options
+
     delete: (path, data, options) ->
+        if not options
+            options = {}
+
+        options.responseType = "json"
+    
         qwest.get @url + path, data, options
+
+    info: () ->
+        @get "/"
 
     accounts:
         create:

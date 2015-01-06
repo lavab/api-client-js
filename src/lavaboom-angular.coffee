@@ -12,10 +12,14 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
     this.$get = ($q) ->
         api = new Lavaboom(url, token)
 
-        console.log(Lavaboom)
-        console.log(api)
-
         service =
+            info: () ->
+                $q (resolve, reject) ->
+                    api.info()
+                        .then (e) ->
+                            resolve(e)
+                        .catch (e) ->
+                            reject(e)
             accounts:
                 create:
                     invited: (query) ->

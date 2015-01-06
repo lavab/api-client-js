@@ -20,7 +20,7 @@
   this.Lavaboom = (function() {
     function Lavaboom(url, token) {
       if (!url) {
-        url = "http://api.lavaboom.com";
+        url = "https://api.lavaboom.com";
       }
       this.url = url;
       this.token = token;

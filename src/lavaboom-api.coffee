@@ -11,7 +11,7 @@ encodeQueryData = (data) ->
 class @Lavaboom
     constructor: (url, token) ->
         if not url
-            url = "http://api.lavaboom.com"
+            url = "https://api.lavaboom.com"
         @url = url
         @token = token
 

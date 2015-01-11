@@ -152,6 +152,44 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
                                 resolve(e)
                             .catch (e) ->
                                 reject(e)
+
+            labels:
+                list: () ->
+                    $q (resolve, reject) ->
+                        api.labels.list()
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                get: (query) ->
+                    $q (resolve, reject) ->
+                        api.labels.get(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                create: (query) ->
+                    $q (resolve, reject) ->
+                        api.labels.create(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                delete: (query) ->
+                    $q (resolve, reject) ->
+                        api.labels.delete(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                update: (id, query) ->
+                    $q (resolve, reject) ->
+                        api.labels.update(id, query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+
             keys:
                 list: (name) ->
                     $q (resolve, reject) ->

@@ -30,6 +30,7 @@
       this.contacts.that = this;
       this.emails.that = this;
       this.keys.that = this;
+      this.labels.that = this;
       this.tokens.that = this;
     }
 
@@ -194,6 +195,28 @@
       create: function(key) {
         return this.that.post("/keys", {
           key: key
+        });
+      }
+    };
+
+    Lavaboom.prototype.labels = {
+      list: function() {
+        return this.that.get("/labels");
+      },
+      get: function(id) {
+        return this.that.get("/labels/" + id);
+      },
+      create: function(query) {
+        return this.that.post("/labels", {
+          name: query.name
+        });
+      },
+      "delete": function(id) {
+        return this.that["delete"]("/labels/" + id);
+      },
+      update: function(id, query) {
+        return this.that.put("/labels/" + id, {
+          name: query.name
         });
       }
     };

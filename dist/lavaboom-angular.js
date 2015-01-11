@@ -196,6 +196,53 @@
             });
           }
         },
+        labels: {
+          list: function() {
+            return $q(function(resolve, reject) {
+              return api.labels.list().then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          get: function(query) {
+            return $q(function(resolve, reject) {
+              return api.labels.get(query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          create: function(query) {
+            return $q(function(resolve, reject) {
+              return api.labels.create(query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          "delete": function(query) {
+            return $q(function(resolve, reject) {
+              return api.labels["delete"](query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          update: function(id, query) {
+            return $q(function(resolve, reject) {
+              return api.labels.update(id, query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          }
+        },
         keys: {
           list: function(name) {
             return $q(function(resolve, reject) {

@@ -21,6 +21,7 @@ class @Lavaboom
         @contacts.that = this
         @emails.that = this
         @keys.that = this
+        @labels.that = this
         @tokens.that = this
 
     get: (path, data, options) ->
@@ -151,6 +152,20 @@ class @Lavaboom
         create: (key) ->
             @that.post "/keys",
                 key: key
+
+    labels:
+        list: () ->
+            @that.get "/labels"
+        get: (id) ->
+            @that.get "/labels/" + id
+        create: (query) ->
+            @that.post "/labels",
+                name: query.name
+        delete: (id) ->
+            @that.delete "/labels/" + id
+        update: (id, query) ->
+            @that.put "/labels/" + id,
+                name: query.name
 
     tokens:
         getCurrent: () ->

@@ -29,12 +29,22 @@
         this.sockjs = new SockJS(url + "/ws");
         this.counter = 0;
         this.handlers = {};
+        this.queuedMessages = [];
+        this.connected = false;
         that = this;
+        this.sockjs.onconnect = function(e) {
+          that.connected = true;
+          if (that.queuedMessages.length > 0) {
+            return _.forEach(that.queuedMessages, function(msg) {
+              return that.sockjs.send(msg);
+            });
+          }
+        };
         this.sockjs.onmessage = function(e) {
           var msg;
           msg = JSON.parse(e.data);
-          if (handler[msg.id]) {
-            return handler[msg.id](msg);
+          if (that.handlers[msg.id]) {
+            return that.handlers[msg.id](msg);
           }
         };
       }
@@ -49,16 +59,18 @@
     }
 
     Lavaboom.prototype._sockReq = function(method, path, data, options) {
-      var promise;
+      var msg, promise;
       this.counter++;
       promise = {
         onSuccess: [],
         onFailure: [],
         then: function(callback) {
-          return onSuccess.push(callback);
+          this.onSuccess.push(callback);
+          return this;
         },
         "catch": function(callback) {
-          return onFailure.push(callback);
+          this.onFailure.push(callback);
+          return this;
         }
       };
       this.handlers[this.counter.toString()] = function(data) {
@@ -72,14 +84,20 @@
           });
         }
       };
-      return this.sockjs.send(JSON.stringify({
+      msg = JSON.stringify({
         id: this.counter.toString(),
         type: "request",
         method: method,
         path: path,
         body: data,
         headers: options.headers && options.headers || null
-      }));
+      });
+      if (this.connected) {
+        this.sockjs.send(msg);
+      } else {
+        this.queuedMessages.push(msg);
+      }
+      return promise;
     };
 
     Lavaboom.prototype.get = function(path, data, options) {

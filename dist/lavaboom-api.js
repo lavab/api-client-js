@@ -25,7 +25,7 @@
       }
       this.url = url;
       this.token = token;
-      if (SockJS) {
+      if (typeof SockJS !== 'undefined') {
         this.sockjs = new SockJS(url + "/ws");
         this.counter = 0;
         this.handlers = {};
@@ -50,7 +50,7 @@
 
     Lavaboom.prototype._sockReq = function(method, path, data, options) {
       var promise;
-      counter++;
+      this.counter++;
       promise = {
         onSuccess: [],
         onFailure: [],
@@ -61,7 +61,7 @@
           return onFailure.push(callback);
         }
       };
-      this.handlers[counter.toString()] = function(data) {
+      this.handlers[this.counter.toString()] = function(data) {
         if (data.status >= 200 && data.status < 300) {
           return _.forEach(promise.onSuccess, function(val) {
             return val(JSON.parse(data.body));
@@ -73,12 +73,12 @@
         }
       };
       return this.sockjs.send(JSON.stringify({
-        id: counter.toString(),
+        id: this.counter.toString(),
         type: "request",
         method: method,
         path: path,
         body: data,
-        headers: option.headers && option.headers || null
+        headers: options.headers && options.headers || null
       }));
     };
 
@@ -89,7 +89,7 @@
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
-        options.headers["Authorization"] = "Bearer " + authToken;
+        options.headers["Authorization"] = "Bearer " + this.authToken;
       }
       if (this.sockjs) {
         return this._sockReq("get", path, data, options);
@@ -104,7 +104,7 @@
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
-        options.headers["Authorization"] = "Bearer " + authToken;
+        options.headers["Authorization"] = "Bearer " + this.authToken;
       }
       if (this.sockjs) {
         return this._sockReq("post", path, data, options);
@@ -119,7 +119,7 @@
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
-        options.headers["Authorization"] = "Bearer " + authToken;
+        options.headers["Authorization"] = "Bearer " + this.authToken;
       }
       if (this.sockjs) {
         return this._sockReq("put", path, data, options);

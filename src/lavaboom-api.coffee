@@ -15,7 +15,7 @@ class @Lavaboom
         @url = url
         @token = token
 
-        if SockJS
+        if typeof SockJS isnt 'undefined'
             @sockjs = new SockJS url + "/ws"
             @counter = 0
             @handlers = {}
@@ -38,7 +38,7 @@ class @Lavaboom
         @tokens.that = this
 
     _sockReq: (method, path, data, options) ->
-        counter++
+        @counter++
 
         promise =
             onSuccess: []
@@ -48,7 +48,7 @@ class @Lavaboom
             catch: (callback) ->
                 onFailure.push callback
 
-        @handlers[counter.toString()] = (data) ->
+        @handlers[@counter.toString()] = (data) ->
             if data.status >= 200 and data.status < 300
                 _.forEach promise.onSuccess, (val) ->
                     val JSON.parse data.body
@@ -57,12 +57,12 @@ class @Lavaboom
                     val JSON.parse data.body
 
         @sockjs.send JSON.stringify
-            id: counter.toString()
+            id: @counter.toString()
             type: "request"
             method: method
             path: path
             body: data
-            headers: option.headers and option.headers or null
+            headers: options.headers and options.headers or null
 
     get: (path, data, options) ->
         if not options

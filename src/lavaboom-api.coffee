@@ -40,8 +40,21 @@ class @Lavaboom
     _sockReq: (method, path, data, options) ->
         counter++
 
+        promise =
+            onSuccess: []
+            onFailure: []
+            then: (callback) ->
+                onSuccess.push callback
+            catch: (callback) ->
+                onFailure.push callback
+
         @handlers[counter.toString()] = (data) ->
-            data = 
+            if data.status >= 200 and data.status < 300
+                _.forEach promise.onSuccess, (val) ->
+                    val JSON.parse data.body
+            else
+                _.forEach promise.onFailure, (val) ->
+                    val JSON.parse data.body
 
         @sockjs.send JSON.stringify
             id: counter.toString()

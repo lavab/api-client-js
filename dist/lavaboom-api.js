@@ -19,11 +19,25 @@
 
   this.Lavaboom = (function() {
     function Lavaboom(url, token) {
+      var that;
       if (!url) {
         url = "https://api.lavaboom.com";
       }
       this.url = url;
       this.token = token;
+      if (SockJS) {
+        this.sockjs = new SockJS(url + "/ws");
+        this.counter = 0;
+        this.handlers = {};
+        that = this;
+        this.sockjs.onmessage = function(e) {
+          var msg;
+          msg = JSON.parse(e.data);
+          if (handler[msg.id]) {
+            return handler[msg.id](msg);
+          }
+        };
+      }
       this.accounts.that = this;
       this.accounts.create.that = this;
       this.accounts.reserve.that = this;
@@ -34,6 +48,40 @@
       this.tokens.that = this;
     }
 
+    Lavaboom.prototype._sockReq = function(method, path, data, options) {
+      var promise;
+      counter++;
+      promise = {
+        onSuccess: [],
+        onFailure: [],
+        then: function(callback) {
+          return onSuccess.push(callback);
+        },
+        "catch": function(callback) {
+          return onFailure.push(callback);
+        }
+      };
+      this.handlers[counter.toString()] = function(data) {
+        if (data.status >= 200 && data.status < 300) {
+          return _.forEach(promise.onSuccess, function(val) {
+            return val(JSON.parse(data.body));
+          });
+        } else {
+          return _.forEach(promise.onFailure, function(val) {
+            return val(JSON.parse(data.body));
+          });
+        }
+      };
+      return this.sockjs.send(JSON.stringify({
+        id: counter.toString(),
+        type: "request",
+        method: method,
+        path: path,
+        body: data,
+        headers: option.headers && option.headers || null
+      }));
+    };
+
     Lavaboom.prototype.get = function(path, data, options) {
       if (!options) {
         options = {};
@@ -43,6 +91,9 @@
         options.headers = {};
         options.headers["Authorization"] = "Bearer " + authToken;
       }
+      if (this.sockjs) {
+        return this._sockReq("get", path, data, options);
+      }
       return qwest.get(this.url + path, data, options);
     };
 
@@ -51,6 +102,13 @@
         options = {};
       }
       options.responseType = "json";
+      if (this.authToken && !options.headers) {
+        options.headers = {};
+        options.headers["Authorization"] = "Bearer " + authToken;
+      }
+      if (this.sockjs) {
+        return this._sockReq("post", path, data, options);
+      }
       return qwest.post(this.url + path, data, options);
     };
 
@@ -59,6 +117,13 @@
         options = {};
       }
       options.responseType = "json";
+      if (this.authToken && !options.headers) {
+        options.headers = {};
+        options.headers["Authorization"] = "Bearer " + authToken;
+      }
+      if (this.sockjs) {
+        return this._sockReq("put", path, data, options);
+      }
       return qwest.put(this.url + path, data, options);
     };
 
@@ -67,6 +132,13 @@
         options = {};
       }
       options.responseType = "json";
+      if (this.authToken && !options.headers) {
+        options.headers = {};
+        options.headers["Authorization"] = "Bearer " + this.authToken;
+      }
+      if (this.sockjs) {
+        return this._sockReq("delete", path, data, options);
+      }
       return qwest["delete"](this.url + path, data, options);
     };
 

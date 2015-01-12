@@ -22,7 +22,7 @@
       api.authToken = authToken;
       service = {
         setAuthToken: function(newToken) {
-          return api.authToken = token;
+          return api.authToken = newToken;
         },
         info: function() {
           return $q(function(resolve, reject) {

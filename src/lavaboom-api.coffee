@@ -15,6 +15,19 @@ class @Lavaboom
         @url = url
         @token = token
 
+        if SockJS
+            @sockjs = new SockJS url + "/ws"
+            @counter = 0
+            @handlers = {}
+
+            that = this
+
+            @sockjs.onmessage = (e) ->
+                msg = JSON.parse(e.data)
+
+                if handler[msg.id]
+                    handler[msg.id](msg)
+
         @accounts.that = this
         @accounts.create.that = this
         @accounts.reserve.that = this
@@ -24,6 +37,33 @@ class @Lavaboom
         @labels.that = this
         @tokens.that = this
 
+    _sockReq: (method, path, data, options) ->
+        counter++
+
+        promise =
+            onSuccess: []
+            onFailure: []
+            then: (callback) ->
+                onSuccess.push callback
+            catch: (callback) ->
+                onFailure.push callback
+
+        @handlers[counter.toString()] = (data) ->
+            if data.status >= 200 and data.status < 300
+                _.forEach promise.onSuccess, (val) ->
+                    val JSON.parse data.body
+            else
+                _.forEach promise.onFailure, (val) ->
+                    val JSON.parse data.body
+
+        @sockjs.send JSON.stringify
+            id: counter.toString()
+            type: "request"
+            method: method
+            path: path
+            body: data
+            headers: option.headers and option.headers or null
+
     get: (path, data, options) ->
         if not options
             options = {}
@@ -32,7 +72,10 @@ class @Lavaboom
 
         if @authToken and not options.headers
             options.headers = {}
-            options.headers["Authorization"] = "Bearer " + authToken
+            options.headers["Authorization"] = "Bearer " + @authToken
+
+        if @sockjs
+            return @_sockReq "get", path, data, options
 
         qwest.get @url + path, data, options
 
@@ -42,6 +85,13 @@ class @Lavaboom
 
         options.responseType = "json"
 
+        if @authToken and not options.headers
+            options.headers = {}
+            options.headers["Authorization"] = "Bearer " + @authToken
+
+        if @sockjs
+            return @_sockReq "post", path, data, options
+
         qwest.post @url + path, data, options
 
     put: (path, data, options) ->
@@ -50,6 +100,13 @@ class @Lavaboom
 
         options.responseType = "json"
 
+        if @authToken and not options.headers
+            options.headers = {}
+            options.headers["Authorization"] = "Bearer " + @authToken
+
+        if @sockjs
+            return @_sockReq "put", path, data, options
+
         qwest.put @url + path, data, options
 
     delete: (path, data, options) ->
@@ -57,6 +114,13 @@ class @Lavaboom
             options = {}
 
         options.responseType = "json"
+
+        if @authToken and not options.headers
+            options.headers = {}
+            options.headers["Authorization"] = "Bearer " + @authToken
+
+        if @sockjs
+            return @_sockReq "delete", path, data, options
 
         qwest.delete @url + path, data, options
 

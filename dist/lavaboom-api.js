@@ -118,6 +118,38 @@
       }
     };
 
+    Lavaboom.prototype.attachments = {
+      list: function() {
+        return this.that.get("/attachments");
+      },
+      create: function(query) {
+        return this.that.post("/attachments", {
+          data: query.data,
+          name: query.name,
+          encoding: query.encoding,
+          version_major: query.version_major,
+          version_minor: query.version_minor,
+          pgp_fingerprints: query.pgp_fingerprints
+        });
+      },
+      get: function(id) {
+        return this.that.get("/attachments/" + id);
+      },
+      update: function(id, query) {
+        return this.that.put("/attachments/" + id, {
+          data: query.data,
+          name: query.name,
+          encoding: query.encoding,
+          version_major: query.version_major,
+          version_minor: query.version_minor,
+          pgp_fingerprints: query.pgp_fingerprints
+        });
+      },
+      "delete": function(id) {
+        return this.that["delete"]("/attachments/" + id);
+      }
+    };
+
     Lavaboom.prototype.contacts = {
       list: function() {
         return this.that.get("/contacts");

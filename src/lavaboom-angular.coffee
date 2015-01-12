@@ -87,6 +87,42 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
                                 resolve(e)
                             .catch (e) ->
                                 reject(e)
+            attachments:
+                list: () ->
+                    $q (resolve, reject) ->
+                        api.attachments.list()
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                create: (query) ->
+                    $q (resolve, reject) ->
+                        api.attachments.create(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                get: (id) ->
+                    $q (resolve, reject) ->
+                        api.attachments.get(id)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                update: (id, query) ->
+                    $q (resolve, reject) ->
+                        api.attachments.update(id, query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                delete: (id) ->
+                    $q (resolve, reject) ->
+                        api.attachments.delete(id)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
             contacts:
                 list: () ->
                     $q (resolve, reject) ->

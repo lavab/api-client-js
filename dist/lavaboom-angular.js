@@ -111,6 +111,53 @@
             });
           }
         },
+        attachments: {
+          list: function() {
+            return $q(function(resolve, reject) {
+              return api.attachments.list().then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          create: function(query) {
+            return $q(function(resolve, reject) {
+              return api.attachments.create(query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          get: function(id) {
+            return $q(function(resolve, reject) {
+              return api.attachments.get(id).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          update: function(id, query) {
+            return $q(function(resolve, reject) {
+              return api.attachments.update(id, query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          "delete": function(id) {
+            return $q(function(resolve, reject) {
+              return api.attachments["delete"](id).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          }
+        },
         contacts: {
           list: function() {
             return $q(function(resolve, reject) {

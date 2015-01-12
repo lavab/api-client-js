@@ -92,6 +92,30 @@ class @Lavaboom
         wipeData: (who) ->
             @that.post "/accounts/" + who "/wipe-data"
 
+    attachments:
+        list: () ->
+            @that.get "/attachments"
+        create: (query) ->
+            @that.post "/attachments",
+                data: query.data
+                name: query.name
+                encoding: query.encoding
+                version_major: query.version_major
+                version_minor: query.version_minor
+                pgp_fingerprints: query.pgp_fingerprints
+        get: (id) ->
+            @that.get "/attachments/" + id
+        update: (id, query) ->
+            @that.put "/attachments/" + id,
+                data: query.data
+                name: query.name
+                encoding: query.encoding
+                version_major: query.version_major
+                version_minor: query.version_minor
+                pgp_fingerprints: query.pgp_fingerprints
+        delete: (id) ->
+            @that.delete "/attachments/" + id
+
     contacts:
         list: () ->
             @that.get "/contacts"

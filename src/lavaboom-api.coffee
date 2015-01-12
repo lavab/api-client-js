@@ -72,7 +72,7 @@ class @Lavaboom
 
         if @authToken and not options.headers
             options.headers = {}
-            options.headers["Authorization"] = "Bearer " + authToken
+            options.headers["Authorization"] = "Bearer " + @authToken
 
         if @sockjs
             return @_sockReq "get", path, data, options
@@ -87,7 +87,7 @@ class @Lavaboom
 
         if @authToken and not options.headers
             options.headers = {}
-            options.headers["Authorization"] = "Bearer " + authToken
+            options.headers["Authorization"] = "Bearer " + @authToken
 
         if @sockjs
             return @_sockReq "post", path, data, options
@@ -102,7 +102,7 @@ class @Lavaboom
 
         if @authToken and not options.headers
             options.headers = {}
-            options.headers["Authorization"] = "Bearer " + authToken
+            options.headers["Authorization"] = "Bearer " + @authToken
 
         if @sockjs
             return @_sockReq "put", path, data, options

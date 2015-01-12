@@ -19,14 +19,22 @@ class @Lavaboom
             @sockjs = new SockJS url + "/ws"
             @counter = 0
             @handlers = {}
+            @queuedMessages = []
+            @connected = false
 
             that = this
+
+            @sockjs.onconnect = (e) ->
+                that.connected = true
+                if that.queuedMessages.length > 0
+                    _.forEach that.queuedMessages, (msg) ->
+                        that.sockjs.send msg
 
             @sockjs.onmessage = (e) ->
                 msg = JSON.parse(e.data)
 
-                if handler[msg.id]
-                    handler[msg.id](msg)
+                if that.handlers[msg.id]
+                    that.handlers[msg.id](msg)
 
         @accounts.that = this
         @accounts.create.that = this
@@ -44,9 +52,11 @@ class @Lavaboom
             onSuccess: []
             onFailure: []
             then: (callback) ->
-                onSuccess.push callback
+                @onSuccess.push callback
+                return this
             catch: (callback) ->
-                onFailure.push callback
+                @onFailure.push callback
+                return this
 
         @handlers[@counter.toString()] = (data) ->
             if data.status >= 200 and data.status < 300
@@ -56,13 +66,20 @@ class @Lavaboom
                 _.forEach promise.onFailure, (val) ->
                     val JSON.parse data.body
 
-        @sockjs.send JSON.stringify
+        msg = JSON.stringify
             id: @counter.toString()
             type: "request"
             method: method
             path: path
             body: data
             headers: options.headers and options.headers or null
+
+        if @connected
+            @sockjs.send msg
+        else
+            @queuedMessages.push msg
+
+        return promise
 
     get: (path, data, options) ->
         if not options

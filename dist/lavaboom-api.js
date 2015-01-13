@@ -104,6 +104,7 @@
       if (!options) {
         options = {};
       }
+      options.dataType = "json";
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
@@ -119,6 +120,7 @@
       if (!options) {
         options = {};
       }
+      options.dataType = "json";
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
@@ -134,6 +136,7 @@
       if (!options) {
         options = {};
       }
+      options.dataType = "json";
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
@@ -149,6 +152,7 @@
       if (!options) {
         options = {};
       }
+      options.dataType = "json";
       options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};

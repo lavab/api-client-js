@@ -85,6 +85,7 @@ class @Lavaboom
         if not options
             options = {}
 
+        options.dataType = "json"
         options.responseType = "json"
 
         if @authToken and not options.headers
@@ -100,6 +101,7 @@ class @Lavaboom
         if not options
             options = {}
 
+        options.dataType = "json"
         options.responseType = "json"
 
         if @authToken and not options.headers
@@ -115,6 +117,7 @@ class @Lavaboom
         if not options
             options = {}
 
+        options.dataType = "json"
         options.responseType = "json"
 
         if @authToken and not options.headers
@@ -130,6 +133,7 @@ class @Lavaboom
         if not options
             options = {}
 
+        options.dataType = "json"
         options.responseType = "json"
 
         if @authToken and not options.headers

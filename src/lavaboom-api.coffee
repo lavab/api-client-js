@@ -1,6 +1,40 @@
-`
-//= require vendor/qwest.min.js
-`
+ajax = ->
+    return new XMLHttpRequest()  if typeof XMLHttpRequest isnt "undefined"
+    versions = [
+        "MSXML2.XmlHttp.5.0"
+        "MSXML2.XmlHttp.4.0"
+        "MSXML2.XmlHttp.3.0"
+        "MSXML2.XmlHttp.2.0"
+        "Microsoft.XmlHttp"
+    ]
+    xhr = undefined
+    i = 0
+
+    while i < versions.length
+        try
+            xhr = new ActiveXObject(versions[i])
+            break
+        i++
+    xhr
+
+parseResponseHeaders = (headerStr) ->
+    headers = {}
+    return headers  unless headerStr
+    headerPairs = headerStr.split("\r\n")
+    i = 0
+
+    while i < headerPairs.length
+        headerPair = headerPairs[i]
+
+        # Can't use split() here because it does the wrong thing
+        # if the header value has the string ": " in it.
+        index = headerPair.indexOf(": ")
+        if index > 0
+            key = headerPair.substring(0, index)
+            val = headerPair.substring(index + 2)
+            headers[key] = val
+        i++
+    headers
 
 encodeQueryData = (data) ->
     ret = []
@@ -81,28 +115,68 @@ class @Lavaboom
 
         return promise
 
+    ajax: (method, url, data, options) ->
+        promise =
+            onSuccess: []
+            onFailure: []
+            then: (callback) ->
+                @onSuccess.push callback
+                return this
+            catch: (callback) ->
+                @onFailure.push callback
+                return this
+
+        x = ajax()
+        x.open method, url, true
+        x.onreadystatechange = ->
+            if x.readyState isnt 4
+                return
+
+            if x.status >= 200 and x.status < 300
+                _.forEach promise.onSuccess, (val) ->
+                    val 
+                        body: JSON.parse(x.responseText)
+                        status: x.status
+                        headers: parseResponseHeaders(x.getAllResponseHeaders())
+            else
+                _.forEach promise.onFailure, (val) ->
+                    val 
+                        body: JSON.parse(x.responseText)
+                        status: x.status
+                        headers: parseResponseHeaders(x.getAllResponseHeaders())
+
+        if method is "POST" or method is "PUT"
+            x.setRequestHeader "Content-Type", "application/json;charset=utf-8"
+
+        for key of options.headers
+            x.setRequestHeader key, options.headers[key]
+
+        x.send(data)
+
+        promise
+
     get: (path, data, options) ->
         if not options
             options = {}
-
-        options.dataType = "json"
-        options.responseType = "json"
 
         if @authToken and not options.headers
             options.headers = {}
             options.headers["Authorization"] = "Bearer " + @authToken
 
-        if @sockjs
-            return @_sockReq "get", path, data, options
+        if data isnt undefined and data.length and data.length isnt 0
+            query = []
+            for key of data
+                query.push encodeURIComponent(key) + "=" + encodeURIComponent(data[key])
+            path += "?" + query.join("&")
 
-        qwest.get @url + path, data, options
+        if @sockjs
+            return @_sockReq "get", path, null, options
+
+        @ajax "GET", @url + path, null, options
 
     post: (path, data, options) ->
         if not options
             options = {}
-
-        options.dataType = "json"
-        options.responseType = "json"
 
         if @authToken and not options.headers
             options.headers = {}
@@ -111,7 +185,7 @@ class @Lavaboom
         if @sockjs
             return @_sockReq "post", path, data, options
 
-        qwest.post @url + path, data, options
+        @ajax "POST", @url + path, JSON.stringify(data), options
 
     put: (path, data, options) ->
         if not options
@@ -127,23 +201,26 @@ class @Lavaboom
         if @sockjs
             return @_sockReq "put", path, data, options
 
-        qwest.put @url + path, data, options
+        @ajax "PUT", @url + path, JSON.stringify(data), options
 
     delete: (path, data, options) ->
         if not options
             options = {}
 
-        options.dataType = "json"
-        options.responseType = "json"
-
         if @authToken and not options.headers
             options.headers = {}
             options.headers["Authorization"] = "Bearer " + @authToken
 
-        if @sockjs
-            return @_sockReq "delete", path, data, options
+        if data isnt undefined and data.length and data.length isnt 0
+            query = []
+            for key of data
+                query.push encodeURIComponent(key) + "=" + encodeURIComponent(data[key])
+            path += "?" + query.join("&")
 
-        qwest.delete @url + path, data, options
+        if @sockjs
+            return @_sockReq "get", path, null, options
+
+        @ajax "DELETE", @url + path, null, options
 
     info: () ->
         @get "/"

@@ -1,11 +1,44 @@
 (function() {
-  
-/*! qwest 1.5.1 (https://github.com/pyrsmk/qwest) */
-!function(a,b,c){"undefined"!=typeof module&&module.exports?module.exports=c:"function"==typeof define&&define.amd?define(c):a[b]=c}(this,"qwest",function(){var win=window,doc=document,before,limit=null,requests=0,request_stack=[],getXHR=function(){return win.XMLHttpRequest?new XMLHttpRequest:new ActiveXObject("Microsoft.XMLHTTP")},xhr2=""===getXHR().responseType,qwest=function(method,url,data,options,before){method=method.toUpperCase(),data=data||null,options=options||{};var nativeResponseParsing=!1,crossOrigin,xhr,xdr=!1,timeoutInterval,aborted=!1,retries=0,headers={},mimeTypes={text:"*/*",xml:"text/xml",json:"application/json",arraybuffer:null,formdata:null,document:null,file:null,blob:null},contentType="Content-Type",vars="",i,j,serialized,then_stack=[],catch_stack=[],complete_stack=[],response,success,error,func,promises={then:function(a){return options.async?then_stack.push(a):success&&a.call(xhr,response),promises},"catch":function(a){return options.async?catch_stack.push(a):error&&a.call(xhr,response),promises},complete:function(a){return options.async?complete_stack.push(a):a.call(xhr),promises}},promises_limit={then:function(a){return request_stack[request_stack.length-1].then.push(a),promises_limit},"catch":function(a){return request_stack[request_stack.length-1]["catch"].push(a),promises_limit},complete:function(a){return request_stack[request_stack.length-1].complete.push(a),promises_limit}},handleResponse=function(){if(!aborted){var i,req,p,responseType;if(--requests,clearInterval(timeoutInterval),request_stack.length){for(req=request_stack.shift(),p=qwest(req.method,req.url,req.data,req.options,req.before),i=0;func=req.then[i];++i)p.then(func);for(i=0;func=req["catch"][i];++i)p["catch"](func);for(i=0;func=req.complete[i];++i)p.complete(func)}try{if("status"in xhr&&!/^2|1223/.test(xhr.status))throw xhr.status+" ("+xhr.statusText+")";var responseText="responseText",responseXML="responseXML",parseError="parseError";if(nativeResponseParsing&&"response"in xhr&&null!==xhr.response)response=xhr.response;else if("document"==options.responseType){var frame=doc.createElement("iframe");frame.style.display="none",doc.body.appendChild(frame),frame.contentDocument.open(),frame.contentDocument.write(xhr.response),frame.contentDocument.close(),response=frame.contentDocument,doc.body.removeChild(frame)}else{if(responseType=options.responseType,"auto"==responseType)switch(xhr.getResponseHeader(contentType)){case mimeTypes.json:responseType="json";break;case mimeTypes.xml:responseType="xml";break;default:responseType="text"}switch(responseType){case"json":try{response="JSON"in win?JSON.parse(xhr[responseText]):eval("("+xhr[responseText]+")")}catch(e){throw"Error while parsing JSON body : "+e}break;case"xml":try{win.DOMParser?response=(new DOMParser).parseFromString(xhr[responseText],"text/xml"):(response=new ActiveXObject("Microsoft.XMLDOM"),response.async="false",response.loadXML(xhr[responseText]))}catch(e){response=void 0}if(!response||!response.documentElement||response.getElementsByTagName("parsererror").length)throw"Invalid XML";break;default:response=xhr[responseText]}}if(success=!0,p=response,options.async)for(i=0;func=then_stack[i];++i)p=func.call(xhr,p)}catch(e){if(error=!0,options.async)for(i=0;func=catch_stack[i];++i)func.call(xhr,e+" ("+url+")")}if(options.async)for(i=0;func=complete_stack[i];++i)func.call(xhr)}},buildData=function(a,b){var c,d=[],e=encodeURIComponent;if("object"==typeof a&&null!=a)for(c in a)a.hasOwnProperty(c)&&(d=d.concat(buildData(a[c],b?b+"["+c+"]":c)));else null!=a&&null!=b&&d.push(e(b)+"="+e(a));return d.join("&")};switch(++requests,options.async="async"in options?!!options.async:!0,options.cache="cache"in options?!!options.cache:"GET"!=method,options.dataType="dataType"in options?options.dataType.toLowerCase():"post",options.responseType="responseType"in options?options.responseType.toLowerCase():"auto",options.user=options.user||"",options.password=options.password||"",options.withCredentials=!!options.withCredentials,options.timeout=options.timeout?parseInt(options.timeout,10):3e3,options.retries=options.retries?parseInt(options.retries,10):3,i=url.match(/\/\/(.+?)\//),crossOrigin=i&&i[1]?i[1]!=location.host:!1,"ArrayBuffer"in win&&data instanceof ArrayBuffer?options.dataType="arraybuffer":"Blob"in win&&data instanceof Blob?options.dataType="blob":"Document"in win&&data instanceof Document?options.dataType="document":"FormData"in win&&data instanceof FormData&&(options.dataType="formdata"),options.dataType){case"json":data=JSON.stringify(data);break;case"post":data=buildData(data)}if(options.headers){var format=function(a,b,c){return b+c.toUpperCase()};for(i in options.headers)headers[i.replace(/(^|-)([^-])/g,format)]=options.headers[i]}if(headers[contentType]||"GET"==method||(options.dataType in mimeTypes?mimeTypes[options.dataType]&&(headers[contentType]=mimeTypes[options.dataType]):headers[contentType]="application/x-www-form-urlencoded"),headers.Accept||(headers.Accept=options.responseType in mimeTypes?mimeTypes[options.responseType]:"*/*"),crossOrigin||headers["X-Requested-With"]||(headers["X-Requested-With"]="XMLHttpRequest"),"GET"==method&&(vars+=data),options.cache||(vars&&(vars+="&"),vars+="__t="+ +new Date),vars&&(url+=(/\?/.test(url)?"&":"?")+vars),limit&&requests==limit)return request_stack.push({method:method,url:url,data:data,options:options,before:before,then:[],"catch":[],complete:[]}),promises_limit;var send=function(){if(xhr=getXHR(),crossOrigin&&("withCredentials"in xhr||!win.XDomainRequest||(xhr=new XDomainRequest,xdr=!0,"GET"!=method&&"POST"!=method&&(method="POST"))),xdr?xhr.open(method,url):(xhr.open(method,url,options.async,options.user,options.password),xhr2&&options.async&&(xhr.withCredentials=options.withCredentials)),!xdr)for(var a in headers)xhr.setRequestHeader(a,headers[a]);if(xhr2&&"document"!=options.responseType)try{xhr.responseType=options.responseType,nativeResponseParsing=xhr.responseType==options.responseType}catch(b){}xhr2||xdr?xhr.onload=handleResponse:xhr.onreadystatechange=function(){4==xhr.readyState&&handleResponse()},"auto"!==options.responseType&&"overrideMimeType"in xhr&&xhr.overrideMimeType(mimeTypes[options.responseType]),before&&before.call(xhr),xdr?setTimeout(function(){xhr.send()},0):xhr.send("GET"!=method?data:null)},timeout=function(){timeoutInterval=setTimeout(function(){if(aborted=!0,xhr.abort(),options.retries&&++retries==options.retries){if(aborted=!1,error=!0,response="Timeout ("+url+")",options.async)for(i=0;func=catch_stack[i];++i)func.call(xhr,response)}else aborted=!1,timeout(),send()},options.timeout)};return timeout(),send(),promises},create=function(a){return function(b,c,d){var e=before;return before=null,qwest(a,b,c,d,e)}},obj={before:function(a){return before=a,obj},get:create("GET"),post:create("POST"),put:create("PUT"),"delete":create("DELETE"),xhr2:xhr2,limit:function(a){limit=a}};return obj}());
+  var ajax, encodeQueryData, parseResponseHeaders;
 
+  ajax = function() {
+    var i, versions, xhr;
+    if (typeof XMLHttpRequest !== "undefined") {
+      return new XMLHttpRequest();
+    }
+    versions = ["MSXML2.XmlHttp.5.0", "MSXML2.XmlHttp.4.0", "MSXML2.XmlHttp.3.0", "MSXML2.XmlHttp.2.0", "Microsoft.XmlHttp"];
+    xhr = void 0;
+    i = 0;
+    while (i < versions.length) {
+      try {
+        xhr = new ActiveXObject(versions[i]);
+        break;
+      } catch (_error) {}
+      i++;
+    }
+    return xhr;
+  };
 
-;
-  var encodeQueryData;
+  parseResponseHeaders = function(headerStr) {
+    var headerPair, headerPairs, headers, i, index, key, val;
+    headers = {};
+    if (!headerStr) {
+      return headers;
+    }
+    headerPairs = headerStr.split("\r\n");
+    i = 0;
+    while (i < headerPairs.length) {
+      headerPair = headerPairs[i];
+      index = headerPair.indexOf(": ");
+      if (index > 0) {
+        key = headerPair.substring(0, index);
+        val = headerPair.substring(index + 2);
+        headers[key] = val;
+      }
+      i++;
+    }
+    return headers;
+  };
 
   encodeQueryData = function(data) {
     var d, ret, _i, _len;
@@ -100,28 +133,80 @@
       return promise;
     };
 
+    Lavaboom.prototype.ajax = function(method, url, data, options) {
+      var key, promise, x;
+      promise = {
+        onSuccess: [],
+        onFailure: [],
+        then: function(callback) {
+          this.onSuccess.push(callback);
+          return this;
+        },
+        "catch": function(callback) {
+          this.onFailure.push(callback);
+          return this;
+        }
+      };
+      x = ajax();
+      x.open(method, url, true);
+      x.onreadystatechange = function() {
+        if (x.readyState !== 4) {
+          return;
+        }
+        if (x.status >= 200 && x.status < 300) {
+          return _.forEach(promise.onSuccess, function(val) {
+            return val({
+              body: JSON.parse(x.responseText),
+              status: x.status,
+              headers: parseResponseHeaders(x.getAllResponseHeaders())
+            });
+          });
+        } else {
+          return _.forEach(promise.onFailure, function(val) {
+            return val({
+              body: JSON.parse(x.responseText),
+              status: x.status,
+              headers: parseResponseHeaders(x.getAllResponseHeaders())
+            });
+          });
+        }
+      };
+      if (method === "POST" || method === "PUT") {
+        x.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+      }
+      for (key in options.headers) {
+        x.setRequestHeader(key, options.headers[key]);
+      }
+      x.send(data);
+      return promise;
+    };
+
     Lavaboom.prototype.get = function(path, data, options) {
+      var key, query;
       if (!options) {
         options = {};
       }
-      options.dataType = "json";
-      options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
         options.headers["Authorization"] = "Bearer " + this.authToken;
       }
-      if (this.sockjs) {
-        return this._sockReq("get", path, data, options);
+      if (data !== void 0 && data.length && data.length !== 0) {
+        query = [];
+        for (key in data) {
+          query.push(encodeURIComponent(key) + "=" + encodeURIComponent(data[key]));
+        }
+        path += "?" + query.join("&");
       }
-      return qwest.get(this.url + path, data, options);
+      if (this.sockjs) {
+        return this._sockReq("get", path, null, options);
+      }
+      return this.ajax("GET", this.url + path, null, options);
     };
 
     Lavaboom.prototype.post = function(path, data, options) {
       if (!options) {
         options = {};
       }
-      options.dataType = "json";
-      options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
         options.headers["Authorization"] = "Bearer " + this.authToken;
@@ -129,7 +214,7 @@
       if (this.sockjs) {
         return this._sockReq("post", path, data, options);
       }
-      return qwest.post(this.url + path, data, options);
+      return this.ajax("POST", this.url + path, JSON.stringify(data), options);
     };
 
     Lavaboom.prototype.put = function(path, data, options) {
@@ -145,23 +230,29 @@
       if (this.sockjs) {
         return this._sockReq("put", path, data, options);
       }
-      return qwest.put(this.url + path, data, options);
+      return this.ajax("PUT", this.url + path, JSON.stringify(data), options);
     };
 
     Lavaboom.prototype["delete"] = function(path, data, options) {
+      var key, query;
       if (!options) {
         options = {};
       }
-      options.dataType = "json";
-      options.responseType = "json";
       if (this.authToken && !options.headers) {
         options.headers = {};
         options.headers["Authorization"] = "Bearer " + this.authToken;
       }
-      if (this.sockjs) {
-        return this._sockReq("delete", path, data, options);
+      if (data !== void 0 && data.length && data.length !== 0) {
+        query = [];
+        for (key in data) {
+          query.push(encodeURIComponent(key) + "=" + encodeURIComponent(data[key]));
+        }
+        path += "?" + query.join("&");
       }
-      return qwest["delete"](this.url + path, data, options);
+      if (this.sockjs) {
+        return this._sockReq("get", path, null, options);
+      }
+      return this.ajax("DELETE", this.url + path, null, options);
     };
 
     Lavaboom.prototype.info = function() {

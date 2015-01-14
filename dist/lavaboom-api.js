@@ -65,7 +65,7 @@
         this.queuedMessages = [];
         this.connected = false;
         that = this;
-        this.sockjs.onconnect = function(e) {
+        this.sockjs.onopen = function(e) {
           that.connected = true;
           if (that.queuedMessages.length > 0) {
             return _.forEach(that.queuedMessages, function(msg) {
@@ -117,13 +117,22 @@
           });
         }
       };
+      if (!options) {
+        options = {};
+      }
+      if (!options.headers) {
+        options.headers = {};
+      }
+      if (method === "POST" || method === "PUT") {
+        options.headers["Content-Type"] = "application/json;charset=utf-8";
+      }
       msg = JSON.stringify({
         id: this.counter.toString(),
         type: "request",
         method: method,
         path: path,
-        body: data,
-        headers: options.headers && options.headers || null
+        body: JSON.stringify(data),
+        headers: options.headers
       });
       if (this.connected) {
         this.sockjs.send(msg);

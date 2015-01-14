@@ -58,7 +58,7 @@ class @Lavaboom
 
             that = this
 
-            @sockjs.onconnect = (e) ->
+            @sockjs.onopen = (e) ->
                 that.connected = true
                 if that.queuedMessages.length > 0
                     _.forEach that.queuedMessages, (msg) ->
@@ -100,13 +100,22 @@ class @Lavaboom
                 _.forEach promise.onFailure, (val) ->
                     val JSON.parse data.body
 
+        if not options
+            options = {}
+
+        if not options.headers
+            options.headers = {}
+
+        if method is "POST" or method is "PUT"
+            options.headers["Content-Type"] = "application/json;charset=utf-8"
+
         msg = JSON.stringify
             id: @counter.toString()
             type: "request"
             method: method
             path: path
-            body: data
-            headers: options.headers and options.headers or null
+            body: JSON.stringify(data)
+            headers: options.headers
 
         if @connected
             @sockjs.send msg

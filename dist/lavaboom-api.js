@@ -170,31 +170,23 @@
 
     Lavaboom.prototype.accounts = {
       create: {
-        invited: function(query) {
+        register: function(query) {
           return this.that.post("/accounts", {
             username: query.username,
-            password: query.password,
-            token: query.token
+            alt_email: query.alt_email
           });
         },
-        classic: function(query) {
+        verify: function(query) {
           return this.that.post("/accounts", {
-            username: query.username,
-            password: query.password,
-            alt_email: query.email
-          });
-        }
-      },
-      reserve: {
-        queue: function(query) {
-          return this.that.post("/accounts", {
-            alt_email: query.email
+            username: query.usernane,
+            invite_code: query.invite_code
           });
         },
-        username: function(query) {
+        setup: function(query) {
           return this.that.post("/accounts", {
             username: query.username,
-            alt_email: query.email
+            invite_code: query.invite_code,
+            password: query.password
           });
         }
       },

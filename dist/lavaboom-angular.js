@@ -35,38 +35,27 @@
         },
         accounts: {
           create: {
-            invited: function(query) {
+            register: function(query) {
               return $q(function(resolve, reject) {
-                return api.accounts.create.invited(query).then(function(e) {
+                return api.accounts.create.register(query).then(function(e) {
                   return resolve(e);
                 })["catch"](function(e) {
                   return reject(e);
                 });
               });
             },
-            classic: function(query) {
+            verify: function(query) {
               return $q(function(resolve, reject) {
-                return api.accounts.create.classic(query).then(function(e) {
-                  return resolve(e);
-                })["catch"](function(e) {
-                  return reject(e);
-                });
-              });
-            }
-          },
-          reserve: {
-            queue: function(query) {
-              return $q(function(resolve, reject) {
-                return api.accounts.reserve.queue(query).then(function(e) {
+                return api.accounts.create.verify(query).then(function(e) {
                   return resolve(e);
                 })["catch"](function(e) {
                   return reject(e);
                 });
               });
             },
-            username: function(query) {
+            setup: function(query) {
               return $q(function(resolve, reject) {
-                return api.accounts.reserve.username(query).then(function(e) {
+                return api.accounts.create.setup(query).then(function(e) {
                   return resolve(e);
                 })["catch"](function(e) {
                   return reject(e);

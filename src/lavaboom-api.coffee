@@ -150,24 +150,19 @@ class @Lavaboom
 
     accounts:
         create:
-            invited: (query) ->
+            register: (query) ->
                 @that.post "/accounts",
                     username: query.username
+                    alt_email: query.alt_email
+            verify: (query) ->
+                @that.post "/accounts",
+                    username: query.usernane
+                    invite_code: query.invite_code
+            setup: (query) ->
+                @that.post "/accounts",
+                    username: query.username
+                    invite_code: query.invite_code
                     password: query.password
-                    token: query.token
-            classic: (query) ->
-                @that.post "/accounts",
-                    username: query.username
-                    password: query.password
-                    alt_email: query.email
-        reserve:
-            queue: (query) ->
-                @that.post "/accounts",
-                    alt_email: query.email
-            username: (query) ->
-                @that.post "/accounts",
-                    username: query.username
-                    alt_email: query.email
         get: (who) ->
             @that.get "/accounts/" + who
         update: (who, what) ->

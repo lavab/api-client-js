@@ -30,31 +30,23 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
                             reject(e)
             accounts:
                 create:
-                    invited: (query) ->
+                    register: (query) ->
                         $q (resolve, reject) ->
-                            api.accounts.create.invited(query)
+                            api.accounts.create.register(query)
                                 .then (e) ->
                                     resolve(e)
                                 .catch (e) ->
                                     reject(e)
-                    classic: (query) ->
+                    verify: (query) ->
                         $q (resolve, reject) ->
-                            api.accounts.create.classic(query)
+                            api.accounts.create.verify(query)
                                 .then (e) ->
                                     resolve(e)
                                 .catch (e) ->
                                     reject(e)
-                reserve:
-                    queue: (query) ->
+                    setup: (query) ->
                         $q (resolve, reject) ->
-                            api.accounts.reserve.queue(query)
-                                .then (e) ->
-                                    resolve(e)
-                                .catch (e) ->
-                                    reject(e)
-                    username: (query) ->
-                        $q (resolve, reject) ->
-                            api.accounts.reserve.username(query)
+                            api.accounts.create.setup(query)
                                 .then (e) ->
                                     resolve(e)
                                 .catch (e) ->

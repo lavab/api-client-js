@@ -72,7 +72,6 @@ class @Lavaboom
 
         @accounts.that = this
         @accounts.create.that = this
-        @accounts.reserve.that = this
         @contacts.that = this
         @emails.that = this
         @keys.that = this
@@ -242,7 +241,7 @@ class @Lavaboom
                     alt_email: query.alt_email
             verify: (query) ->
                 @that.post "/accounts",
-                    username: query.usernane
+                    username: query.username
                     invite_code: query.invite_code
             setup: (query) ->
                 @that.post "/accounts",

@@ -83,7 +83,6 @@
       }
       this.accounts.that = this;
       this.accounts.create.that = this;
-      this.accounts.reserve.that = this;
       this.contacts.that = this;
       this.emails.that = this;
       this.keys.that = this;
@@ -278,7 +277,7 @@
         },
         verify: function(query) {
           return this.that.post("/accounts", {
-            username: query.usernane,
+            username: query.username,
             invite_code: query.invite_code
           });
         },

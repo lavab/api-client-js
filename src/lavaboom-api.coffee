@@ -38,8 +38,8 @@ parseResponseHeaders = (headerStr) ->
 
 encodeQueryData = (data) ->
     ret = []
-    for d in data
-        ret.push encodeURIComponent(d) + "=" + encodeURIComponent(data[d])
+    for k, v of data
+        ret.push encodeURIComponent(k) + "=" + encodeURIComponent(v)
     ret.join "&"
 
 class @Lavaboom

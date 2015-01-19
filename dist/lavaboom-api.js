@@ -41,11 +41,11 @@
   };
 
   encodeQueryData = function(data) {
-    var d, ret, _i, _len;
+    var k, ret, v;
     ret = [];
-    for (_i = 0, _len = data.length; _i < _len; _i++) {
-      d = data[_i];
-      ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(data[d]));
+    for (k in data) {
+      v = data[k];
+      ret.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
     }
     return ret.join("&");
   };

@@ -122,9 +122,10 @@
       if (!options.headers) {
         options.headers = {};
       }
-      if (method === "POST" || method === "PUT") {
+      if (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT") {
         options.headers["Content-Type"] = "application/json;charset=utf-8";
       }
+      console.log(options);
       msg = JSON.stringify({
         id: this.counter.toString(),
         type: "request",

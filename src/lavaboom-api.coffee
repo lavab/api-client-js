@@ -105,7 +105,7 @@ class @Lavaboom
         if not options.headers
             options.headers = {}
 
-        if method is "POST" or method is "PUT"
+        if method.toUpperCase() is "POST" or method.toUpperCase() is "PUT"
             options.headers["Content-Type"] = "application/json;charset=utf-8"
 
         msg = JSON.stringify

@@ -24,6 +24,12 @@
         setAuthToken: function(newToken) {
           return api.authToken = newToken;
         },
+        subscribe: function(name, callback) {
+          return api.subscribe(name, callback);
+        },
+        unsubscribe: function(name, callback) {
+          return api.unsubscribe(name, callback);
+        },
         info: function() {
           return $q(function(resolve, reject) {
             return api.info().then(function(e) {

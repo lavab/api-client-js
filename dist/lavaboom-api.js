@@ -74,10 +74,35 @@
           }
         };
         this.sockjs.onmessage = function(e) {
-          var msg;
+          var callback, msg, _i, _j, _len, _len1, _ref, _ref1, _results, _results1;
           msg = JSON.parse(e.data);
-          if (that.handlers[msg.id]) {
-            return that.handlers[msg.id](msg);
+          switch (msg.type) {
+            case "response":
+              if (that.handlers[msg.id]) {
+                return that.handlers[msg.id](msg);
+              }
+              break;
+            case "delivery":
+              if (that.subscriptions && that.subscriptions["delivery"]) {
+                _ref = that.subscriptions["delivery"];
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  callback = _ref[_i];
+                  _results.push(callback(msg));
+                }
+                return _results;
+              }
+              break;
+            case "receipt":
+              if (that.subscriptions && that.subscriptions["receipt"]) {
+                _ref1 = that.subscriptions["receipt"];
+                _results1 = [];
+                for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                  callback = _ref1[_j];
+                  _results1.push(callback(msg));
+                }
+                return _results1;
+              }
           }
         };
       }
@@ -108,11 +133,13 @@
       this.handlers[this.counter.toString()] = function(data) {
         if (data.status >= 200 && data.status < 300) {
           return _.forEach(promise.onSuccess, function(val) {
-            return val(JSON.parse(data.body));
+            data.body = JSON.parse(data.body);
+            return val(data);
           });
         } else {
           return _.forEach(promise.onFailure, function(val) {
-            return val(JSON.parse(data.body));
+            data.body = JSON.parse(data.body);
+            return val(data);
           });
         }
       };
@@ -125,7 +152,6 @@
       if (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT") {
         options.headers["Content-Type"] = "application/json;charset=utf-8";
       }
-      console.log(options);
       msg = JSON.stringify({
         id: this.counter.toString(),
         type: "request",
@@ -140,6 +166,55 @@
         this.queuedMessages.push(msg);
       }
       return promise;
+    };
+
+    Lavaboom.prototype.subscribe = function(name, callback) {
+      if (!this.sockjs) {
+        console.error("Not using SockJS");
+        return false;
+      }
+      if (!this.authToken) {
+        console.error("Not authenticated");
+        return false;
+      }
+      if (!this.subscriptions) {
+        this.sockjs.send(JSON.stringify({
+          "type": "susbcribe",
+          "token": this.authToken
+        }));
+        this.subscriptions = {};
+      }
+      if (!this.subscriptions[name]) {
+        this.subscriptions[name] = [];
+      }
+      return this.subscriptions[name].push(callback);
+    };
+
+    Lavaboom.prototype.unsubscribe = function(name, callback) {
+      var cb, index, _i, _len, _ref;
+      if (!this.sockjs) {
+        console.error("Not using SockJS");
+        return false;
+      }
+      if (!this.authToken) {
+        console.error("Not authenticated");
+        return false;
+      }
+      if (!this.subscriptions) {
+        return false;
+      }
+      if (!this.subscriptions[name]) {
+        return false;
+      }
+      _ref = this.subscriptions[name];
+      for (cb = _i = 0, _len = _ref.length; _i < _len; cb = ++_i) {
+        index = _ref[cb];
+        if (cb === callback) {
+          this.subscriptions[name].splice(index, 1);
+          return true;
+        }
+      }
+      return false;
     };
 
     Lavaboom.prototype.ajax = function(method, url, data, options) {

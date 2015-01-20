@@ -21,6 +21,12 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
             setAuthToken: (newToken) ->
                 api.authToken = newToken
 
+            subscribe: (name, callback) ->
+                api.subscribe name, callback
+
+            unsubscribe: (name, callback) ->
+                api.unsubscribe name, callback
+
             info: () ->
                 $q (resolve, reject) ->
                     api.info()

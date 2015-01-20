@@ -67,8 +67,18 @@ class @Lavaboom
             @sockjs.onmessage = (e) ->
                 msg = JSON.parse(e.data)
 
-                if that.handlers[msg.id]
-                    that.handlers[msg.id](msg)
+                switch msg.type
+                    when "response"
+                        if that.handlers[msg.id]
+                            that.handlers[msg.id](msg)
+                    when "delivery"
+                        if that.subscriptions and that.subscriptions["delivery"]
+                            for callback in that.subscriptions["delivery"]
+                                callback(msg)
+                    when "receipt"
+                        if that.subscriptions and that.subscriptions["receipt"]
+                            for callback in that.subscriptions["receipt"]
+                                callback(msg)
 
         @accounts.that = this
         @accounts.create.that = this
@@ -94,10 +104,12 @@ class @Lavaboom
         @handlers[@counter.toString()] = (data) ->
             if data.status >= 200 and data.status < 300
                 _.forEach promise.onSuccess, (val) ->
-                    val JSON.parse data.body
+                    data.body = JSON.parse data.body
+                    val data
             else
                 _.forEach promise.onFailure, (val) ->
-                    val JSON.parse data.body
+                    data.body = JSON.parse data.body
+                    val data
 
         if not options
             options = {}
@@ -122,6 +134,48 @@ class @Lavaboom
             @queuedMessages.push msg
 
         return promise
+
+    subscribe: (name, callback) ->
+        if not @sockjs
+            console.error "Not using SockJS"
+            return false
+
+        if not @authToken
+            console.error "Not authenticated"
+            return false
+
+        if not @subscriptions
+            @sockjs.send JSON.stringify
+                "type": "susbcribe"
+                "token": @authToken
+            @subscriptions = {}
+
+        if not @subscriptions[name]
+            @subscriptions[name] = []
+
+        @subscriptions[name].push callback
+
+    unsubscribe: (name, callback) ->
+        if not @sockjs
+            console.error "Not using SockJS"
+            return false
+
+        if not @authToken
+            console.error "Not authenticated"
+            return false
+
+        if not @subscriptions
+            return false
+
+        if not @subscriptions[name]
+            return false
+
+        for index, cb in @subscriptions[name]
+            if cb == callback
+                @subscriptions[name].splice index, 1
+                return true
+
+        return false
 
     ajax: (method, url, data, options) ->
         promise =

@@ -194,16 +194,22 @@ class @Lavaboom
             if x.readyState isnt 4
                 return
 
+            body = undefined
+            try
+                body = JSON.parse(x.responseText)
+            catch error
+                body = error
+
             if x.status >= 200 and x.status < 300
                 _.forEach promise.onSuccess, (val) ->
                     val 
-                        body: JSON.parse(x.responseText)
+                        body: body
                         status: x.status
                         headers: parseResponseHeaders(x.getAllResponseHeaders())
             else
                 _.forEach promise.onFailure, (val) ->
                     val 
-                        body: JSON.parse(x.responseText)
+                        body: body
                         status: x.status
                         headers: parseResponseHeaders(x.getAllResponseHeaders())
 
@@ -213,7 +219,7 @@ class @Lavaboom
         for key of options.headers
             x.setRequestHeader key, options.headers[key]
 
-        x.send(data)
+        x.send data
 
         promise
 

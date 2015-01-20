@@ -234,13 +234,21 @@
       x = ajax();
       x.open(method, url, true);
       x.onreadystatechange = function() {
+        var body, error;
         if (x.readyState !== 4) {
           return;
+        }
+        body = void 0;
+        try {
+          body = JSON.parse(x.responseText);
+        } catch (_error) {
+          error = _error;
+          body = error;
         }
         if (x.status >= 200 && x.status < 300) {
           return _.forEach(promise.onSuccess, function(val) {
             return val({
-              body: JSON.parse(x.responseText),
+              body: body,
               status: x.status,
               headers: parseResponseHeaders(x.getAllResponseHeaders())
             });
@@ -248,7 +256,7 @@
         } else {
           return _.forEach(promise.onFailure, function(val) {
             return val({
-              body: JSON.parse(x.responseText),
+              body: body,
               status: x.status,
               headers: parseResponseHeaders(x.getAllResponseHeaders())
             });

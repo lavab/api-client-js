@@ -113,6 +113,7 @@
       this.keys.that = this;
       this.labels.that = this;
       this.tokens.that = this;
+      this.threads.that = this;
     }
 
     Lavaboom.prototype._sockReq = function(method, path, data, options) {
@@ -519,6 +520,28 @@
         return this.that.put("/labels/" + id, {
           name: query.name
         });
+      }
+    };
+
+    Lavaboom.prototype.threads = {
+      list: function(query) {
+        var url;
+        url = "/threads";
+        if (query && _.size(query) > 0) {
+          url += "?" + encodeQueryData(query);
+        }
+        return this.that.get(url);
+      },
+      get: function(id) {
+        return this.that.get("/threads/" + id);
+      },
+      update: function(query) {
+        return this.that.post("/threads", {
+          labels: query.labels
+        });
+      },
+      "delete": function(id) {
+        return this.that["delete"]("/threads/" + id);
       }
     };
 

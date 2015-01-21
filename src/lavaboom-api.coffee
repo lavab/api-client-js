@@ -87,6 +87,7 @@ class @Lavaboom
         @keys.that = this
         @labels.that = this
         @tokens.that = this
+        @threads.that = this
 
     _sockReq: (method, path, data, options) ->
         @counter++
@@ -415,6 +416,21 @@ class @Lavaboom
         update: (id, query) ->
             @that.put "/labels/" + id,
                 name: query.name
+
+    threads:
+        list: (query) ->
+            url = "/threads"
+            if query and _.size(query) > 0
+                url += "?" + encodeQueryData(query)
+
+            @that.get url
+        get: (id) ->
+            @that.get "/threads/" + id
+        update: (query) ->
+            @that.post "/threads",
+                labels: query.labels
+        delete: (id) ->
+            @that.delete "/threads/" + id
 
     tokens:
         getCurrent: () ->

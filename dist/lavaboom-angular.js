@@ -314,6 +314,44 @@
             });
           }
         },
+        threads: {
+          list: function(query) {
+            return $q(function(resolve, reject) {
+              return api.threads.list(query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          get: function(id) {
+            return $q(function(resolve, reject) {
+              return api.threads.get(id).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          update: function(query) {
+            return $q(function(resolve, reject) {
+              return api.threads.update(query).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          },
+          "delete": function(id) {
+            return $q(function(resolve, reject) {
+              return api.threads["delete"](id).then(function(e) {
+                return resolve(e);
+              })["catch"](function(e) {
+                return reject(e);
+              });
+            });
+          }
+        },
         tokens: {
           getCurrent: function() {
             return $q(function(resolve, reject) {

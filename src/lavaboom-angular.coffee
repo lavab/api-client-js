@@ -246,6 +246,37 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
                                 resolve(e)
                             .catch (e) ->
                                 reject(e)
+
+            threads:
+                list: (query) ->
+                    $q (resolve, reject) ->
+                        api.threads.list(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                get: (id) ->
+                    $q (resolve, reject) ->
+                        api.threads.get(id)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                update: (query) ->
+                    $q (resolve, reject) ->
+                        api.threads.update(query)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+                delete: (id) ->
+                    $q (resolve, reject) ->
+                        api.threads.delete(id)
+                            .then (e) ->
+                                resolve(e)
+                            .catch (e) ->
+                                reject(e)
+
             tokens:
                 getCurrent: () ->
                     $q (resolve, reject) ->

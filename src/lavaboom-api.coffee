@@ -147,7 +147,7 @@ class @Lavaboom
 
         if not @subscriptions
             @sockjs.send JSON.stringify
-                "type": "susbcribe"
+                "type": "subscribe"
                 "token": @authToken
             @subscriptions = {}
 

@@ -16,7 +16,7 @@
     this.setURL = function(newURL) {
       return url = newURL;
     };
-    this.$get = function($q) {
+    this.$get = function($q, $rootScope) {
       var service;
       api = new Lavaboom(url, specialToken);
       api.authToken = authToken;
@@ -25,10 +25,18 @@
           return api.authToken = newToken;
         },
         subscribe: function(name, callback) {
-          return api.subscribe(name, callback);
+          return api.subscribe(name, function(e) {
+            return $rootScope.$apply(function() {
+              return callback(e);
+            });
+          });
         },
         unsubscribe: function(name, callback) {
-          return api.unsubscribe(name, callback);
+          return api.unsubscribe(name, function(e) {
+            return $rootScope.$apply(function() {
+              return callback(e);
+            });
+          });
         },
         info: function() {
           return $q(function(resolve, reject) {

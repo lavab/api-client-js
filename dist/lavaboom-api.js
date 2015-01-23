@@ -180,7 +180,7 @@
       }
       if (!this.subscriptions) {
         this.sockjs.send(JSON.stringify({
-          "type": "susbcribe",
+          "type": "subscribe",
           "token": this.authToken
         }));
         this.subscriptions = {};

@@ -343,7 +343,7 @@
         path += "?" + query.join("&");
       }
       if (this.sockjs) {
-        return this._sockReq("get", path, null, options);
+        return this._sockReq("delete", path, null, options);
       }
       return this.ajax("DELETE", this.url + path, null, options);
     };

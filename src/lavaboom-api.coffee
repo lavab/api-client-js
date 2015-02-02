@@ -287,7 +287,7 @@ class @Lavaboom
             path += "?" + query.join("&")
 
         if @sockjs
-            return @_sockReq "get", path, null, options
+            return @_sockReq "delete", path, null, options
 
         @ajax "DELETE", @url + path, null, options
 

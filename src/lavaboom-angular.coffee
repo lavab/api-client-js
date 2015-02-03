@@ -266,9 +266,9 @@ angular.module("lavaboom.api", []).provider "LavaboomAPI", LavaboomAPIProvider =
                                 resolve(e)
                             .catch (e) ->
                                 reject(e)
-                update: (query) ->
+                update: (id, query) ->
                     $q (resolve, reject) ->
-                        api.threads.update(query)
+                        api.threads.update(id, query)
                             .then (e) ->
                                 resolve(e)
                             .catch (e) ->

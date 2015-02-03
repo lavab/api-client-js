@@ -426,8 +426,8 @@ class @Lavaboom
             @that.get url
         get: (id) ->
             @that.get "/threads/" + id
-        update: (query) ->
-            @that.post "/threads",
+        update: (id, query) ->
+            @that.put "/threads/" + id,
                 labels: query.labels
         delete: (id) ->
             @that.delete "/threads/" + id

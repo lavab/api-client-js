@@ -341,9 +341,9 @@
               });
             });
           },
-          update: function(query) {
+          update: function(id, query) {
             return $q(function(resolve, reject) {
-              return api.threads.update(query).then(function(e) {
+              return api.threads.update(id, query).then(function(e) {
                 return resolve(e);
               })["catch"](function(e) {
                 return reject(e);

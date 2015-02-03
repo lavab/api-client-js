@@ -535,8 +535,8 @@
       get: function(id) {
         return this.that.get("/threads/" + id);
       },
-      update: function(query) {
-        return this.that.post("/threads", {
+      update: function(id, query) {
+        return this.that.put("/threads/" + id, {
           labels: query.labels
         });
       },

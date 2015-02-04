@@ -1,6 +1,6 @@
 {
   "name": "api-client-js",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "lavaboom.io API client",
   "main": "src/index.coffee",
   "scripts": {

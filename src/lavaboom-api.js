@@ -1,7 +1,3 @@
-"use strict";
-
-/* API client class */
-exports.Lavaboom = Lavaboom;
 /* jshint esnext: true */
 /* global ActiveXObject */
 /* global SockJS */
@@ -13,10 +9,16 @@ function getAjaxRequest() {
         return new XMLHttpRequest();
     }
 
-    var versions = ["MSXML2.XmlHttp.5.0", "MSXML2.XmlHttp.4.0", "MSXML2.XmlHttp.3.0", "MSXML2.XmlHttp.2.0", "Microsoft.XmlHttp"];
+    let versions = [
+        "MSXML2.XmlHttp.5.0",
+        "MSXML2.XmlHttp.4.0",
+        "MSXML2.XmlHttp.3.0",
+        "MSXML2.XmlHttp.2.0",
+        "Microsoft.XmlHttp"
+    ];
 
-    var xhr = undefined;
-    for (var i = 0; i < versions.length; i++) {
+    let xhr;
+    for (let i = 0; i < versions.length; i++) {
         try {
             xhr = new ActiveXObject(versions[i]);
             break;
@@ -29,22 +31,22 @@ function getAjaxRequest() {
 }
 
 function parseResponseHeaders(input) {
-    var headers = {};
+    let headers = {};
 
     if (input) {
         return headers;
     }
 
-    var pairs = input.split("\r\n");
+    let pairs = input.split("\r\n");
 
-    for (var i = 0; i < pairs.length; i++) {
-        var pair = pairs[i];
-
+    for (let i = 0; i < pairs.length; i++) {
+        let pair = pairs[i];
+        
         // Does same thing as strings.SplitN in Go
-        var index = pair.indexOf(": ");
+        let index = pair.indexOf(": ");
         if (index > -1) {
-            var key = pair.substring(0, index);
-            var val = pair.substring(index + 2);
+            let key = pair.substring(0, index);
+            let val = pair.substring(index + 2);
             headers[key] = val;
         }
     }
@@ -53,17 +55,20 @@ function parseResponseHeaders(input) {
 }
 
 function encodeQueryData(data) {
-    var elements = [];
+    let elements = [];
 
-    for (var key in data) {
+    for (let key in data) {
         if (data.hasOwnProperty(key)) {
             elements.push(encodeURIComponent(key) + "=" + encodeURIComponent(elements[key]));
         }
     }
 
     return elements.join("&");
-}function Lavaboom(url, token) {
-    var self = this;
+}
+
+/* API client class */
+export function Lavaboom(url, token) {
+    let self = this;
 
     // Default Lavaboom API URL
     if (!url) {
@@ -84,8 +89,8 @@ function encodeQueryData(data) {
         self.handlers = {};
 
         // Incoming message handler
-        self.sockjs.onmessage = function (e) {
-            var msg = JSON.parse(e.data);
+        self.sockjs.onmessage = function(e) {
+            let msg = JSON.parse(e.data);
 
             switch (msg.type) {
                 case "response":
@@ -95,7 +100,7 @@ function encodeQueryData(data) {
                     break;
                 default:
                     if (self.subscriptions && self.subscriptions[msg.type]) {
-                        for (var i = 0; i < self.subscriptions[msg.type].length; i++) {
+                        for (let i = 0; i < self.subscriptions[msg.type].length; i++) {
                             self.subscriptions[msg.type][i](msg);
                         }
                     }
@@ -104,7 +109,7 @@ function encodeQueryData(data) {
         };
     }
 
-    self.request = function (method, path, data, options) {
+    self.request = function(method, path, data, options) {
         // Generate some defaults
         if (!options) {
             options = {};
@@ -128,12 +133,12 @@ function encodeQueryData(data) {
         method = method.toUpperCase();
 
         if (self.sockjs) {
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 // Increase the counter (it can't be _not threadsafe_, as we're using JS)
                 self.sockjs_counter++;
 
                 // Generate a new message
-                var msg = JSON.stringify({
+                let msg = JSON.stringify({
                     id: self.sockjs_counter.toString(),
                     type: "request",
                     method: method,
@@ -145,7 +150,7 @@ function encodeQueryData(data) {
                 // Send the message
                 self.sockjs.send(msg);
 
-                self.handlers[self.sockjs_counter.toString()] = function (data) {
+                self.handlers[self.sockjs_counter.toString()] = (data) => {
                     // Parse the body
                     data.body = JSON.parse(data.body);
 
@@ -158,20 +163,20 @@ function encodeQueryData(data) {
                 };
             });
         } else {
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 // Get a new AJAX object
-                var req = getAjaxRequest();
+                let req = getAjaxRequest();
 
                 // Start the request. Last param is whether it should be performed async or not
                 req.open(method, url, true);
-                req.onreadystatechange = function () {
+                req.onreadystatechange = () => {
                     // 4 means complete
                     if (req.readyState !== 4) {
                         return;
                     }
 
                     // Try to parse the response
-                    var body = undefined;
+                    let body;
                     try {
                         body = JSON.parse(req.responseText);
                     } catch (error) {
@@ -195,9 +200,9 @@ function encodeQueryData(data) {
                 };
 
                 // Set other headers
-                for (var key in options.headers) {
+                for (let key in options.headers) {
                     if (options.headers.hasOwnProperty(key)) {
-                        req.setRequestHeader(key, options.headers[key]);
+                    req.setRequestHeader(key, options.headers[key]);
                     }
                 }
 
@@ -208,7 +213,7 @@ function encodeQueryData(data) {
     };
 
     // Subscription methods
-    self.subscribe = function (name, callback) {
+    self.subscribe = function(name, callback) {
         if (!self.sockjs) {
             console.error("Not using SockJS");
             return false;
@@ -221,8 +226,8 @@ function encodeQueryData(data) {
 
         if (!self.subscriptions) {
             self.sockjs.send(JSON.stringify({
-                type: "subscribe",
-                token: self.authToken
+                "type": "subscribe",
+                "token": self.authToken
             }));
             self.subscriptions = {};
         }
@@ -234,7 +239,7 @@ function encodeQueryData(data) {
         self.subscriptions[name].push(callback);
     };
 
-    self.unsubscribe = function (name, callback) {
+    self.unsubscribe = function(name, callback){
         if (!self.sockjs) {
             console.error("Not using SockJS");
             return false;
@@ -253,7 +258,7 @@ function encodeQueryData(data) {
             return false;
         }
 
-        for (var i = 0; i < self.subscriptions[name].length; i++) {
+        for (let i = 0; i < self.subscriptions[name].length; i++) {
             if (self.subscriptions[name][i] == callback) {
                 self.subscriptions[name].splice(i, 1);
                 return true;
@@ -264,7 +269,7 @@ function encodeQueryData(data) {
     };
 
     // Request helpers
-    self.get = function (path, data, options) {
+    self.get = function(path, data, options) {
         // Encode the query params
         if (data !== undefined && data.length && data.length !== 0) {
             path += "?" + encodeQueryData(data);
@@ -274,15 +279,15 @@ function encodeQueryData(data) {
         return self.request("GET", self.url + path, null, options);
     };
 
-    self.post = function (path, data, options) {
+    self.post = function(path, data, options) {
         return self.request("POST", self.url + path, JSON.stringify(data), options);
     };
 
-    self.put = function (path, data, options) {
+    self.put = function(path, data, options) {
         return self.request("PUT", self.url + path, JSON.stringify(data), options);
     };
 
-    self["delete"] = function (path, data, options) {
+    self.delete = function(path, data, options) {
         // Encode the query params
         if (data !== undefined && data.length && data.length !== 0) {
             path += "?" + encodeQueryData(data);
@@ -293,26 +298,26 @@ function encodeQueryData(data) {
     };
 
     // API index
-    self.info = function () {
+    self.info = function() {
         return self.get("/");
     };
 
     // Accounts
     self.accounts = {
         create: {
-            register: function (query) {
+            register: function(query) {
                 return self.post("/accounts", {
                     username: query.username,
                     alt_email: query.alt_email
                 });
             },
-            verify: function (query) {
+            verify: function(query) {
                 return self.post("/accounts", {
                     username: query.username,
                     invite_code: query.invite_code
                 });
             },
-            setup: function (query) {
+            setup: function(query) {
                 return self.post("/accounts", {
                     username: query.username,
                     invite_code: query.invite_code,
@@ -320,26 +325,26 @@ function encodeQueryData(data) {
                 });
             }
         },
-        get: function (who) {
+        get: function(who) {
             return self.get("/accounts/" + who);
         },
-        update: function (who, what) {
+        update: function(who, what) {
             return self.put("/accounts/" + who, what);
         },
-        "delete": function (who) {
-            return self["delete"]("/accounts/" + who);
+        delete: function(who) {
+            return self.delete("/accounts/" + who);
         },
-        wipeData: function (who) {
+        wipeData: function(who) {
             return self.post("/accounts/" + who + "/wipe-data");
         }
     };
 
     // Attachments
     self.attachments = {
-        list: function () {
+        list: function() {
             return self.get("/accounts");
         },
-        create: function (query) {
+        create: function(query) {
             return self.post("/attachments", {
                 data: query.data,
                 name: query.name,
@@ -349,10 +354,10 @@ function encodeQueryData(data) {
                 pgp_fingerprints: query.pgp_fingerprints
             });
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/attachments/" + id);
         },
-        update: function (id, query) {
+        update: function(id, query) {
             return self.put("/attachments/" + id, {
                 data: query.data,
                 name: query.name,
@@ -362,17 +367,17 @@ function encodeQueryData(data) {
                 pgp_fingerprints: query.pgp_fingerprints
             });
         },
-        "delete": function (id) {
-            return self["delete"]("/attachments/" + id);
+        delete: function(id) {
+            return self.delete("/attachments/" + id);
         }
     };
 
     // Contacts
     self.contacts = {
-        list: function () {
+        list: function() {
             return self.get("/contacts");
         },
-        create: function (query) {
+        create: function(query) {
             return self.post("/contacts", {
                 data: query.data,
                 name: query.name,
@@ -382,10 +387,10 @@ function encodeQueryData(data) {
                 pgp_fingerprints: query.pgp_fingerprints
             });
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/contacts/" + id);
         },
-        update: function (id, query) {
+        update: function(id, query) {
             return self.put("/contacts/" + id, {
                 data: query.data,
                 name: query.name,
@@ -395,20 +400,20 @@ function encodeQueryData(data) {
                 pgp_fingerprints: query.pgp_fingerprints
             });
         },
-        "delete": function (id) {
-            return self["delete"]("/contacts/" + id);
+        delete: function(id) {
+            return self.delete("/contacts/" + id);
         }
     };
 
     // Emails
     self.emails = {
-        list: function (query) {
+        list: function(query) {
             return self.get("/emails", query);
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/emails/" + id);
         },
-        create: function (query) {
+        create: function(query) {
             return self.post("/emails", {
                 to: query.to,
                 cc: query.cc,
@@ -424,20 +429,20 @@ function encodeQueryData(data) {
                 pgp_fingerprints: query.pgp_fingerprints
             });
         },
-        "delete": function (id) {
-            return self["delete"]("/emails/" + id);
+        delete: function(id) {
+            return self.delete("/emails/" + id);
         }
     };
 
     // Keys
     self.keys = {
-        list: function (name) {
+        list: function(name) {
             return self.get("/keys?user=" + name);
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/keys/" + encodeURIComponent(id));
         },
-        create: function (key) {
+        create: function(key) {
             return self.post("/keys", {
                 key: key
             });
@@ -446,21 +451,21 @@ function encodeQueryData(data) {
 
     // Labels
     self.labels = {
-        list: function () {
+        list: function() {
             return self.get("/labels");
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/labels/" + id);
         },
-        create: function (query) {
+        create: function(query) {
             return self.post("/labels", {
                 name: query.name
             });
         },
-        "delete": function (id) {
-            return self["delete"]("/labels/" + id);
+        delete: function(id) {
+            return self.delete("/labels/" + id);
         },
-        update: function (id, query) {
+        update: function(id, query) {
             return self.put("/labels/" + id, {
                 name: query.name
             });
@@ -469,31 +474,31 @@ function encodeQueryData(data) {
 
     // Threads
     self.threads = {
-        list: function (query) {
+        list: function(query) {
             return self.get("/threads", query);
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/threads/" + id);
         },
-        update: function (id, query) {
+        update: function(id, query) {
             return self.put("/threads/" + id, {
                 labels: query.labels
             });
         },
-        "delete": function (id) {
-            return self["delete"]("/threads/" + id);
+        delete: function(id) {
+            return self.delete("/threads/" + id);
         }
     };
 
     // Tokens
     self.tokens = {
-        getCurrent: function () {
+        getCurrent: function() {
             return self.get("/tokens");
         },
-        get: function (id) {
+        get: function(id) {
             return self.get("/tokens/" + id);
         },
-        create: function (query) {
+        create: function(query) {
             return self.post("/tokens", {
                 username: query.username,
                 password: query.password,
@@ -501,14 +506,13 @@ function encodeQueryData(data) {
                 token: query.token
             });
         },
-        deleteCurrent: function () {
-            return self["delete"]("/tokens");
+        deleteCurrent: function() {
+            return self.delete("/tokens");
         },
-        "delete": function (id) {
-            return self["delete"]("/tokens/" + id);
+        delete: function(id) {
+            return self.delete("/tokens/" + id);
         }
     };
 
     return self;
 }
-exports.__esModule = true;

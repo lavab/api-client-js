@@ -2,517 +2,518 @@
 /* global ActiveXObject */
 /* global SockJS */
 
-/* Helper functions */
-
-function getAjaxRequest() {
-    if (typeof XMLHttpRequest !== "undefined") {
-        return new XMLHttpRequest();
-    }
-
-    let versions = [
-        "MSXML2.XmlHttp.5.0",
-        "MSXML2.XmlHttp.4.0",
-        "MSXML2.XmlHttp.3.0",
-        "MSXML2.XmlHttp.2.0",
-        "Microsoft.XmlHttp"
-    ];
-
-    let xhr;
-    for (let i = 0; i < versions.length; i++) {
-        try {
-            xhr = new ActiveXObject(versions[i]);
-            break;
-        } catch (error) {
-            continue;
+(function() {
+    /* Helper functions */
+    function getAjaxRequest() {
+        if (typeof XMLHttpRequest !== "undefined") {
+            return new XMLHttpRequest();
         }
+
+        let versions = [
+            "MSXML2.XmlHttp.5.0",
+            "MSXML2.XmlHttp.4.0",
+            "MSXML2.XmlHttp.3.0",
+            "MSXML2.XmlHttp.2.0",
+            "Microsoft.XmlHttp"
+        ];
+
+        let xhr;
+        for (let i = 0; i < versions.length; i++) {
+            try {
+                xhr = new ActiveXObject(versions[i]);
+                break;
+            } catch (error) {
+                continue;
+            }
+        }
+
+        return xhr;
     }
 
-    return xhr;
-}
+    function parseResponseHeaders(input) {
+        let headers = {};
 
-function parseResponseHeaders(input) {
-    let headers = {};
+        if (input) {
+            return headers;
+        }
 
-    if (input) {
+        let pairs = input.split("\r\n");
+
+        for (let i = 0; i < pairs.length; i++) {
+            let pair = pairs[i];
+            
+            // Does same thing as strings.SplitN in Go
+            let index = pair.indexOf(": ");
+            if (index > -1) {
+                let key = pair.substring(0, index);
+                let val = pair.substring(index + 2);
+                headers[key] = val;
+            }
+        }
+
         return headers;
     }
 
-    let pairs = input.split("\r\n");
+    function encodeQueryData(data) {
+        let elements = [];
 
-    for (let i = 0; i < pairs.length; i++) {
-        let pair = pairs[i];
-        
-        // Does same thing as strings.SplitN in Go
-        let index = pair.indexOf(": ");
-        if (index > -1) {
-            let key = pair.substring(0, index);
-            let val = pair.substring(index + 2);
-            headers[key] = val;
+        for (let key in data) {
+            if (data.hasOwnProperty(key)) {
+                elements.push(encodeURIComponent(key) + "=" + encodeURIComponent(elements[key]));
+            }
         }
+
+        return elements.join("&");
     }
 
-    return headers;
-}
+    /* API client class */
+    this.Lavaboom = function(url, token) {
+        let self = this;
 
-function encodeQueryData(data) {
-    let elements = [];
-
-    for (let key in data) {
-        if (data.hasOwnProperty(key)) {
-            elements.push(encodeURIComponent(key) + "=" + encodeURIComponent(elements[key]));
+        // Default Lavaboom API URL
+        if (!url) {
+            url = "https://api.lavaboom.com";
         }
-    }
 
-    return elements.join("&");
-}
+        // Push it to the class
+        self.url = url;
+        self.token = token;
 
-/* API client class */
-export function Lavaboom(url, token) {
-    let self = this;
+        // Use SockJS if it's loaded
+        if (typeof SockJS !== "undefined") {
+            // Create a new connection
+            self.sockjs = new SockJS(url + "/ws");
 
-    // Default Lavaboom API URL
-    if (!url) {
-        url = "https://api.lavaboom.com";
-    }
+            // Initialize event handling utility vars
+            self.sockjs_counter = 0;
+            self.handlers = {};
 
-    // Push it to the class
-    self.url = url;
-    self.token = token;
+            // Incoming message handler
+            self.sockjs.onmessage = function(e) {
+                let msg = JSON.parse(e.data);
 
-    // Use SockJS if it's loaded
-    if (typeof SockJS !== "undefined") {
-        // Create a new connection
-        self.sockjs = new SockJS(url + "/ws");
+                switch (msg.type) {
+                    case "response":
+                        if (self.handlers[msg.id]) {
+                            self.handlers[msg.id](msg);
+                        }
+                        break;
+                    default:
+                        if (self.subscriptions && self.subscriptions[msg.type]) {
+                            for (let i = 0; i < self.subscriptions[msg.type].length; i++) {
+                                self.subscriptions[msg.type][i](msg);
+                            }
+                        }
+                        break;
+                }
+            };
+        }
 
-        // Initialize event handling utility vars
-        self.sockjs_counter = 0;
-        self.handlers = {};
+        self.request = function(method, path, data, options) {
+            // Generate some defaults
+            if (!options) {
+                options = {};
+            }
 
-        // Incoming message handler
-        self.sockjs.onmessage = function(e) {
-            let msg = JSON.parse(e.data);
+            if (!options.headers) {
+                options.headers = {};
+            }
 
-            switch (msg.type) {
-                case "response":
-                    if (self.handlers[msg.id]) {
-                        self.handlers[msg.id](msg);
-                    }
-                    break;
-                default:
-                    if (self.subscriptions && self.subscriptions[msg.type]) {
-                        for (let i = 0; i < self.subscriptions[msg.type].length; i++) {
-                            self.subscriptions[msg.type][i](msg);
+            // Add a Content-Type to the request is we're sending a body
+            if (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT") {
+                options.headers["Content-Type"] = "application/json;charset=utf-8";
+            }
+
+            // Inject the authentication token
+            if (self.authToken) {
+                options.headers.Authorization = "Bearer " + self.authToken;
+            }
+
+            // Force method to be uppercase
+            method = method.toUpperCase();
+
+            if (self.sockjs) {
+                return new Promise((resolve, reject) => {
+                    // Increase the counter (it can't be _not threadsafe_, as we're using JS)
+                    self.sockjs_counter++;
+
+                    // Generate a new message
+                    let msg = JSON.stringify({
+                        id: self.sockjs_counter.toString(),
+                        type: "request",
+                        method: method,
+                        path: path,
+                        body: JSON.stringify(data),
+                        headers: options.headers
+                    });
+
+                    // Send the message
+                    self.sockjs.send(msg);
+
+                    self.handlers[self.sockjs_counter.toString()] = (data) => {
+                        // Parse the body
+                        data.body = JSON.parse(data.body);
+
+                        // Depending on the status, resolve or reject
+                        if (data.status >= 200 && data.status < 300) {
+                            resolve(data);
+                        } else {
+                            reject(data);
+                        }
+                    };
+                });
+            } else {
+                return new Promise((resolve, reject) => {
+                    // Get a new AJAX object
+                    let req = getAjaxRequest();
+
+                    // Start the request. Last param is whether it should be performed async or not
+                    req.open(method, url, true);
+                    req.onreadystatechange = () => {
+                        // 4 means complete
+                        if (req.readyState !== 4) {
+                            return;
+                        }
+
+                        // Try to parse the response
+                        let body;
+                        try {
+                            body = JSON.parse(req.responseText);
+                        } catch (error) {
+                            body = error;
+                        }
+
+                        // Resolve the promise
+                        if (req.status >= 200 && req.status < 300) {
+                            resolve({
+                                body: body,
+                                status: req.status,
+                                headers: parseResponseHeaders(req.getAllResponseHeaders())
+                            });
+                        } else {
+                            reject({
+                                body: body,
+                                status: req.status,
+                                headers: parseResponseHeaders(req.getAllResponseHeaders())
+                            });
+                        }
+                    };
+
+                    // Set other headers
+                    for (let key in options.headers) {
+                        if (options.headers.hasOwnProperty(key)) {
+                        req.setRequestHeader(key, options.headers[key]);
                         }
                     }
-                    break;
+
+                    // Send the request
+                    req.send(data);
+                });
             }
         };
-    }
 
-    self.request = function(method, path, data, options) {
-        // Generate some defaults
-        if (!options) {
-            options = {};
-        }
+        // Subscription methods
+        self.subscribe = function(name, callback) {
+            if (!self.sockjs) {
+                console.error("Not using SockJS");
+                return false;
+            }
 
-        if (!options.headers) {
-            options.headers = {};
-        }
+            if (!self.authToken) {
+                console.error("Not authenticated");
+                return false;
+            }
 
-        // Add a Content-Type to the request is we're sending a body
-        if (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT") {
-            options.headers["Content-Type"] = "application/json;charset=utf-8";
-        }
+            if (!self.subscriptions) {
+                self.sockjs.send(JSON.stringify({
+                    "type": "subscribe",
+                    "token": self.authToken
+                }));
+                self.subscriptions = {};
+            }
 
-        // Inject the authentication token
-        if (self.authToken) {
-            options.headers.Authorization = "Bearer " + self.authToken;
-        }
+            if (!self.subscriptions[name]) {
+                self.subscriptions[name] = [];
+            }
 
-        // Force method to be uppercase
-        method = method.toUpperCase();
+            self.subscriptions[name].push(callback);
+        };
 
-        if (self.sockjs) {
-            return new Promise((resolve, reject) => {
-                // Increase the counter (it can't be _not threadsafe_, as we're using JS)
-                self.sockjs_counter++;
+        self.unsubscribe = function(name, callback){
+            if (!self.sockjs) {
+                console.error("Not using SockJS");
+                return false;
+            }
 
-                // Generate a new message
-                let msg = JSON.stringify({
-                    id: self.sockjs_counter.toString(),
-                    type: "request",
-                    method: method,
-                    path: path,
-                    body: JSON.stringify(data),
-                    headers: options.headers
-                });
+            if (!self.authToken) {
+                console.error("Not authenticated");
+                return false;
+            }
 
-                // Send the message
-                self.sockjs.send(msg);
+            if (!self.subscriptions) {
+                return false;
+            }
 
-                self.handlers[self.sockjs_counter.toString()] = (data) => {
-                    // Parse the body
-                    data.body = JSON.parse(data.body);
+            if (!self.subscriptions[name]) {
+                return false;
+            }
 
-                    // Depending on the status, resolve or reject
-                    if (data.status >= 200 && data.status < 300) {
-                        resolve(data);
-                    } else {
-                        reject(data);
-                    }
-                };
-            });
-        } else {
-            return new Promise((resolve, reject) => {
-                // Get a new AJAX object
-                let req = getAjaxRequest();
-
-                // Start the request. Last param is whether it should be performed async or not
-                req.open(method, url, true);
-                req.onreadystatechange = () => {
-                    // 4 means complete
-                    if (req.readyState !== 4) {
-                        return;
-                    }
-
-                    // Try to parse the response
-                    let body;
-                    try {
-                        body = JSON.parse(req.responseText);
-                    } catch (error) {
-                        body = error;
-                    }
-
-                    // Resolve the promise
-                    if (req.status >= 200 && req.status < 300) {
-                        resolve({
-                            body: body,
-                            status: req.status,
-                            headers: parseResponseHeaders(req.getAllResponseHeaders())
-                        });
-                    } else {
-                        reject({
-                            body: body,
-                            status: req.status,
-                            headers: parseResponseHeaders(req.getAllResponseHeaders())
-                        });
-                    }
-                };
-
-                // Set other headers
-                for (let key in options.headers) {
-                    if (options.headers.hasOwnProperty(key)) {
-                    req.setRequestHeader(key, options.headers[key]);
-                    }
+            for (let i = 0; i < self.subscriptions[name].length; i++) {
+                if (self.subscriptions[name][i] == callback) {
+                    self.subscriptions[name].splice(i, 1);
+                    return true;
                 }
-
-                // Send the request
-                req.send(data);
-            });
-        }
-    };
-
-    // Subscription methods
-    self.subscribe = function(name, callback) {
-        if (!self.sockjs) {
-            console.error("Not using SockJS");
-            return false;
-        }
-
-        if (!self.authToken) {
-            console.error("Not authenticated");
-            return false;
-        }
-
-        if (!self.subscriptions) {
-            self.sockjs.send(JSON.stringify({
-                "type": "subscribe",
-                "token": self.authToken
-            }));
-            self.subscriptions = {};
-        }
-
-        if (!self.subscriptions[name]) {
-            self.subscriptions[name] = [];
-        }
-
-        self.subscriptions[name].push(callback);
-    };
-
-    self.unsubscribe = function(name, callback){
-        if (!self.sockjs) {
-            console.error("Not using SockJS");
-            return false;
-        }
-
-        if (!self.authToken) {
-            console.error("Not authenticated");
-            return false;
-        }
-
-        if (!self.subscriptions) {
-            return false;
-        }
-
-        if (!self.subscriptions[name]) {
-            return false;
-        }
-
-        for (let i = 0; i < self.subscriptions[name].length; i++) {
-            if (self.subscriptions[name][i] == callback) {
-                self.subscriptions[name].splice(i, 1);
-                return true;
             }
-        }
 
-        return false;
-    };
+            return false;
+        };
 
-    // Request helpers
-    self.get = function(path, data, options) {
-        // Encode the query params
-        if (data !== undefined && data.length && data.length !== 0) {
-            path += "?" + encodeQueryData(data);
-        }
+        // Request helpers
+        self.get = function(path, data, options) {
+            // Encode the query params
+            if (data !== undefined && data.length && data.length !== 0) {
+                path += "?" + encodeQueryData(data);
+            }
 
-        // Perform the request
-        return self.request("GET", self.url + path, null, options);
-    };
+            // Perform the request
+            return self.request("GET", self.url + path, null, options);
+        };
 
-    self.post = function(path, data, options) {
-        return self.request("POST", self.url + path, JSON.stringify(data), options);
-    };
+        self.post = function(path, data, options) {
+            return self.request("POST", self.url + path, JSON.stringify(data), options);
+        };
 
-    self.put = function(path, data, options) {
-        return self.request("PUT", self.url + path, JSON.stringify(data), options);
-    };
+        self.put = function(path, data, options) {
+            return self.request("PUT", self.url + path, JSON.stringify(data), options);
+        };
 
-    self.delete = function(path, data, options) {
-        // Encode the query params
-        if (data !== undefined && data.length && data.length !== 0) {
-            path += "?" + encodeQueryData(data);
-        }
+        self.delete = function(path, data, options) {
+            // Encode the query params
+            if (data !== undefined && data.length && data.length !== 0) {
+                path += "?" + encodeQueryData(data);
+            }
 
-        // Perform the request
-        return self.request("DELETE", self.url + path, null, options);
-    };
+            // Perform the request
+            return self.request("DELETE", self.url + path, null, options);
+        };
 
-    // API index
-    self.info = function() {
-        return self.get("/");
-    };
+        // API index
+        self.info = function() {
+            return self.get("/");
+        };
 
-    // Accounts
-    self.accounts = {
-        create: {
-            register: function(query) {
-                return self.post("/accounts", {
-                    username: query.username,
-                    alt_email: query.alt_email
+        // Accounts
+        self.accounts = {
+            create: {
+                register: function(query) {
+                    return self.post("/accounts", {
+                        username: query.username,
+                        alt_email: query.alt_email
+                    });
+                },
+                verify: function(query) {
+                    return self.post("/accounts", {
+                        username: query.username,
+                        invite_code: query.invite_code
+                    });
+                },
+                setup: function(query) {
+                    return self.post("/accounts", {
+                        username: query.username,
+                        invite_code: query.invite_code,
+                        password: query.password
+                    });
+                }
+            },
+            get: function(who) {
+                return self.get("/accounts/" + who);
+            },
+            update: function(who, what) {
+                return self.put("/accounts/" + who, what);
+            },
+            delete: function(who) {
+                return self.delete("/accounts/" + who);
+            },
+            wipeData: function(who) {
+                return self.post("/accounts/" + who + "/wipe-data");
+            }
+        };
+
+        // Attachments
+        self.attachments = {
+            list: function() {
+                return self.get("/accounts");
+            },
+            create: function(query) {
+                return self.post("/attachments", {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
                 });
             },
-            verify: function(query) {
-                return self.post("/accounts", {
-                    username: query.username,
-                    invite_code: query.invite_code
+            get: function(id) {
+                return self.get("/attachments/" + id);
+            },
+            update: function(id, query) {
+                return self.put("/attachments/" + id, {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
                 });
             },
-            setup: function(query) {
-                return self.post("/accounts", {
-                    username: query.username,
-                    invite_code: query.invite_code,
-                    password: query.password
+            delete: function(id) {
+                return self.delete("/attachments/" + id);
+            }
+        };
+
+        // Contacts
+        self.contacts = {
+            list: function() {
+                return self.get("/contacts");
+            },
+            create: function(query) {
+                return self.post("/contacts", {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
+                });
+            },
+            get: function(id) {
+                return self.get("/contacts/" + id);
+            },
+            update: function(id, query) {
+                return self.put("/contacts/" + id, {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
+                });
+            },
+            delete: function(id) {
+                return self.delete("/contacts/" + id);
+            }
+        };
+
+        // Emails
+        self.emails = {
+            list: function(query) {
+                return self.get("/emails", query);
+            },
+            get: function(id) {
+                return self.get("/emails/" + id);
+            },
+            create: function(query) {
+                return self.post("/emails", {
+                    to: query.to,
+                    cc: query.cc,
+                    bcc: query.bcc,
+                    reply_to: query.reply_to,
+                    thread_id: query.thread_id,
+                    subject: query.subject,
+                    is_encrypted: query.is_encrypted,
+                    body: query.body,
+                    body_version_major: query.body_version_major,
+                    body_version_minor: query.body_version_minor,
+                    attachments: query.attachments,
+                    pgp_fingerprints: query.pgp_fingerprints
+                });
+            },
+            delete: function(id) {
+                return self.delete("/emails/" + id);
+            }
+        };
+
+        // Keys
+        self.keys = {
+            list: function(name) {
+                return self.get("/keys?user=" + name);
+            },
+            get: function(id) {
+                return self.get("/keys/" + encodeURIComponent(id));
+            },
+            create: function(key) {
+                return self.post("/keys", {
+                    key: key
                 });
             }
-        },
-        get: function(who) {
-            return self.get("/accounts/" + who);
-        },
-        update: function(who, what) {
-            return self.put("/accounts/" + who, what);
-        },
-        delete: function(who) {
-            return self.delete("/accounts/" + who);
-        },
-        wipeData: function(who) {
-            return self.post("/accounts/" + who + "/wipe-data");
-        }
-    };
+        };
 
-    // Attachments
-    self.attachments = {
-        list: function() {
-            return self.get("/accounts");
-        },
-        create: function(query) {
-            return self.post("/attachments", {
-                data: query.data,
-                name: query.name,
-                encoding: query.encoding,
-                version_major: query.version_major,
-                version_minor: query.version_minor,
-                pgp_fingerprints: query.pgp_fingerprints
-            });
-        },
-        get: function(id) {
-            return self.get("/attachments/" + id);
-        },
-        update: function(id, query) {
-            return self.put("/attachments/" + id, {
-                data: query.data,
-                name: query.name,
-                encoding: query.encoding,
-                version_major: query.version_major,
-                version_minor: query.version_minor,
-                pgp_fingerprints: query.pgp_fingerprints
-            });
-        },
-        delete: function(id) {
-            return self.delete("/attachments/" + id);
-        }
-    };
+        // Labels
+        self.labels = {
+            list: function() {
+                return self.get("/labels");
+            },
+            get: function(id) {
+                return self.get("/labels/" + id);
+            },
+            create: function(query) {
+                return self.post("/labels", {
+                    name: query.name
+                });
+            },
+            delete: function(id) {
+                return self.delete("/labels/" + id);
+            },
+            update: function(id, query) {
+                return self.put("/labels/" + id, {
+                    name: query.name
+                });
+            }
+        };
 
-    // Contacts
-    self.contacts = {
-        list: function() {
-            return self.get("/contacts");
-        },
-        create: function(query) {
-            return self.post("/contacts", {
-                data: query.data,
-                name: query.name,
-                encoding: query.encoding,
-                version_major: query.version_major,
-                version_minor: query.version_minor,
-                pgp_fingerprints: query.pgp_fingerprints
-            });
-        },
-        get: function(id) {
-            return self.get("/contacts/" + id);
-        },
-        update: function(id, query) {
-            return self.put("/contacts/" + id, {
-                data: query.data,
-                name: query.name,
-                encoding: query.encoding,
-                version_major: query.version_major,
-                version_minor: query.version_minor,
-                pgp_fingerprints: query.pgp_fingerprints
-            });
-        },
-        delete: function(id) {
-            return self.delete("/contacts/" + id);
-        }
-    };
+        // Threads
+        self.threads = {
+            list: function(query) {
+                return self.get("/threads", query);
+            },
+            get: function(id) {
+                return self.get("/threads/" + id);
+            },
+            update: function(id, query) {
+                return self.put("/threads/" + id, {
+                    labels: query.labels
+                });
+            },
+            delete: function(id) {
+                return self.delete("/threads/" + id);
+            }
+        };
 
-    // Emails
-    self.emails = {
-        list: function(query) {
-            return self.get("/emails", query);
-        },
-        get: function(id) {
-            return self.get("/emails/" + id);
-        },
-        create: function(query) {
-            return self.post("/emails", {
-                to: query.to,
-                cc: query.cc,
-                bcc: query.bcc,
-                reply_to: query.reply_to,
-                thread_id: query.thread_id,
-                subject: query.subject,
-                is_encrypted: query.is_encrypted,
-                body: query.body,
-                body_version_major: query.body_version_major,
-                body_version_minor: query.body_version_minor,
-                attachments: query.attachments,
-                pgp_fingerprints: query.pgp_fingerprints
-            });
-        },
-        delete: function(id) {
-            return self.delete("/emails/" + id);
-        }
-    };
+        // Tokens
+        self.tokens = {
+            getCurrent: function() {
+                return self.get("/tokens");
+            },
+            get: function(id) {
+                return self.get("/tokens/" + id);
+            },
+            create: function(query) {
+                return self.post("/tokens", {
+                    username: query.username,
+                    password: query.password,
+                    type: query.type,
+                    token: query.token
+                });
+            },
+            deleteCurrent: function() {
+                return self.delete("/tokens");
+            },
+            delete: function(id) {
+                return self.delete("/tokens/" + id);
+            }
+        };
 
-    // Keys
-    self.keys = {
-        list: function(name) {
-            return self.get("/keys?user=" + name);
-        },
-        get: function(id) {
-            return self.get("/keys/" + encodeURIComponent(id));
-        },
-        create: function(key) {
-            return self.post("/keys", {
-                key: key
-            });
-        }
-    };
-
-    // Labels
-    self.labels = {
-        list: function() {
-            return self.get("/labels");
-        },
-        get: function(id) {
-            return self.get("/labels/" + id);
-        },
-        create: function(query) {
-            return self.post("/labels", {
-                name: query.name
-            });
-        },
-        delete: function(id) {
-            return self.delete("/labels/" + id);
-        },
-        update: function(id, query) {
-            return self.put("/labels/" + id, {
-                name: query.name
-            });
-        }
-    };
-
-    // Threads
-    self.threads = {
-        list: function(query) {
-            return self.get("/threads", query);
-        },
-        get: function(id) {
-            return self.get("/threads/" + id);
-        },
-        update: function(id, query) {
-            return self.put("/threads/" + id, {
-                labels: query.labels
-            });
-        },
-        delete: function(id) {
-            return self.delete("/threads/" + id);
-        }
-    };
-
-    // Tokens
-    self.tokens = {
-        getCurrent: function() {
-            return self.get("/tokens");
-        },
-        get: function(id) {
-            return self.get("/tokens/" + id);
-        },
-        create: function(query) {
-            return self.post("/tokens", {
-                username: query.username,
-                password: query.password,
-                type: query.type,
-                token: query.token
-            });
-        },
-        deleteCurrent: function() {
-            return self.delete("/tokens");
-        },
-        delete: function(id) {
-            return self.delete("/tokens/" + id);
-        }
-    };
-
-    return self;
-}
+        return self;
+    }
+})();

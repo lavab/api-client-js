@@ -67,7 +67,7 @@
     }
 
     /* API client class */
-    this.Lavaboom = function(url, token) {
+    this.Lavaboom = function(url, apiToken) {
         let self = this;
 
         // Default Lavaboom API URL
@@ -77,7 +77,7 @@
 
         // Push it to the class
         self.url = url;
-        self.token = token;
+        self.apiToken = apiToken;
 
         // Use SockJS if it's loaded
         if (typeof SockJS !== "undefined") {
@@ -127,6 +127,11 @@
             // Inject the authentication token
             if (self.authToken) {
                 options.headers.Authorization = "Bearer " + self.authToken;
+            }
+
+            // And the API token
+            if (self.apiToken) {
+                options.headers["X-Lavaboom-Token"] = self.apiToken;
             }
 
             // Force method to be uppercase

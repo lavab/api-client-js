@@ -198,4 +198,4 @@
 
         return self;
     });
-})();
+}).call(window);

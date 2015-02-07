@@ -517,4 +517,4 @@
 
         return self;
     };
-})();
+}).call(window);

@@ -196,4 +196,4 @@
 
         return self;
     });
-})();
+}).call(window);

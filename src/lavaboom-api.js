@@ -521,4 +521,4 @@
 
         return self;
     }
-})();
+}).call(window);

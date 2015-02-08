@@ -344,39 +344,6 @@
             }
         };
 
-        // Attachments
-        self.attachments = {
-            list: function() {
-                return self.get("/accounts");
-            },
-            create: function(query) {
-                return self.post("/attachments", {
-                    data: query.data,
-                    name: query.name,
-                    encoding: query.encoding,
-                    version_major: query.version_major,
-                    version_minor: query.version_minor,
-                    pgp_fingerprints: query.pgp_fingerprints
-                });
-            },
-            get: function(id) {
-                return self.get("/attachments/" + id);
-            },
-            update: function(id, query) {
-                return self.put("/attachments/" + id, {
-                    data: query.data,
-                    name: query.name,
-                    encoding: query.encoding,
-                    version_major: query.version_major,
-                    version_minor: query.version_minor,
-                    pgp_fingerprints: query.pgp_fingerprints
-                });
-            },
-            delete: function(id) {
-                return self.delete("/attachments/" + id);
-            }
-        };
-
         // Contacts
         self.contacts = {
             list: function() {
@@ -430,12 +397,45 @@
                     body: query.body,
                     body_version_major: query.body_version_major,
                     body_version_minor: query.body_version_minor,
-                    attachments: query.attachments,
+                    files: query.files,
                     pgp_fingerprints: query.pgp_fingerprints
                 });
             },
             delete: function(id) {
                 return self.delete("/emails/" + id);
+            }
+        };
+
+        // Files
+        self.files = {
+            list: function() {
+                return self.get("/files");
+            },
+            create: function(query) {
+                return self.post("/files", {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
+                });
+            },
+            get: function(id) {
+                return self.get("/files/" + id);
+            },
+            update: function(id, query) {
+                return self.put("/files/" + id, {
+                    data: query.data,
+                    name: query.name,
+                    encoding: query.encoding,
+                    version_major: query.version_major,
+                    version_minor: query.version_minor,
+                    pgp_fingerprints: query.pgp_fingerprints
+                });
+            },
+            delete: function(id) {
+                return self.delete("/files/" + id);
             }
         };
 

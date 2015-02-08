@@ -73,25 +73,6 @@
                     }
                 },
 
-                // Attachments
-                attachments: {
-                    list: function () {
-                        return $q.when(self.api.attachments.list());
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.attachments.create(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.attachments.get(id));
-                    },
-                    update: function (id, query) {
-                        return $q.when(self.api.attachments.update(id, query));
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.attachments["delete"](id));
-                    }
-                },
-
                 // Contacts
                 contacts: {
                     list: function () {
@@ -124,6 +105,25 @@
                     },
                     "delete": function (id) {
                         return $q.when(self.api.emails["delete"](id));
+                    }
+                },
+
+                // Files
+                files: {
+                    list: function () {
+                        return $q.when(self.api.files.list());
+                    },
+                    create: function (query) {
+                        return $q.when(self.api.files.create(query));
+                    },
+                    get: function (id) {
+                        return $q.when(self.api.files.get(id));
+                    },
+                    update: function (id, query) {
+                        return $q.when(self.api.files.update(id, query));
+                    },
+                    "delete": function (id) {
+                        return $q.when(self.api.files["delete"](id));
                     }
                 },
 

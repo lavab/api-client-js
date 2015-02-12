@@ -50,17 +50,11 @@
 		return headers;
 	}
 
-	function encodeQueryData(data) {
-		var elements = [];
-
-		for (var key in data) {
-			if (data.hasOwnProperty(key)) {
-				elements.push(encodeURIComponent(key) + "=" + encodeURIComponent(elements[key]));
-			}
-		}
-
-		return elements.join("&");
-	}
+	var encodeQueryData = function (data) {
+		return Object.keys(data).map(function (k) {
+			return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
+		}).join("&");
+	};
 
 	/* API client class */
 	this.Lavaboom = function (url, apiToken, Promise) {
@@ -90,14 +84,13 @@
 
 				switch (msg.type) {
 					case "response":
-						if (self.handlers[msg.id]) {
-							self.handlers[msg.id](msg);
-						}
+						if (self.handlers[msg.id]) self.handlers[msg.id](msg);
 						break;
 					default:
 						if (self.subscriptions && self.subscriptions[msg.type]) {
-							for (var i = 0; i < self.subscriptions[msg.type].length; i++) {
-								self.subscriptions[msg.type][i](msg);
+							for (var _iterator = self.subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+								var subscription = _step.value;
+								subscription(msg);
 							}
 						}
 						break;
@@ -185,7 +178,7 @@
 				var req = getAjaxRequest();
 
 				// Start the request. Last param is whether it should be performed async or not
-				req.open(method, url, true);
+				req.open(method, url + path, true);
 				req.onreadystatechange = function () {
 					// 4 means complete
 					if (req.readyState !== 4) {
@@ -224,7 +217,7 @@
 				}
 
 				// Send the request
-				req.send(data);
+				req.send(JSON.stringify(data));
 			});
 		};
 
@@ -273,27 +266,23 @@
 		// Request helpers
 		self.get = function (path, data, options) {
 			// Encode the query params
-			if (data !== undefined && data.length && data.length !== 0) {
-				path += "?" + encodeQueryData(data);
-			}
+			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
 
 			// Perform the request
 			return self.request("GET", path, null, options);
 		};
 
 		self.post = function (path, data, options) {
-			return self.request("POST", path, JSON.stringify(data), options);
+			return self.request("POST", path, data, options);
 		};
 
 		self.put = function (path, data, options) {
-			return self.request("PUT", path, JSON.stringify(data), options);
+			return self.request("PUT", path, data, options);
 		};
 
 		self["delete"] = function (path, data, options) {
 			// Encode the query params
-			if (data !== undefined && data.length && data.length !== 0) {
-				path += "?" + encodeQueryData(data);
-			}
+			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
 
 			// Perform the request
 			return self.request("DELETE", path, null, options);

@@ -417,7 +417,9 @@
 			list: (query) => self.get('/threads', query),
 			get: (id) => self.get('/threads/' + id),
 			update: (id, query) => self.put('/threads/' + id, {
-				labels: query.labels
+				labels: query.labels,
+				is_read: query.is_read,
+				last_read: query.last_read
 			}),
 			delete: (id) => self.delete('/threads/' + id)
 		};

@@ -473,7 +473,9 @@
 			},
 			update: function (id, query) {
 				return self.put("/threads/" + id, {
-					labels: query.labels
+					labels: query.labels,
+					is_read: query.is_read,
+					last_read: query.last_read
 				});
 			},
 			"delete": function (id) {

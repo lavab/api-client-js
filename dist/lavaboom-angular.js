@@ -5,197 +5,202 @@
 /* global Lavaboom */
 
 (function () {
-    angular.module("lavaboom.api", []).provider("LavaboomAPI", function LavaboomAPIProvider() {
-        // Define provider's scope
-        var self = this;
+	angular.module("lavaboom.api", []).provider("LavaboomAPI", function LavaboomAPIProvider() {
+		// Define provider's scope
+		var self = this;
 
-        // LavaboomAPI definition
-        self.$get = function ($q, $rootScope) {
-            // Initialize a new API token
-            self.api = new Lavaboom(self.url, self.specialToken);
+		// LavaboomAPI definition
+		self.$get = function ($q, $rootScope) {
+			// Initialize a new API token
+			self.api = new Lavaboom(self.url, self.specialToken, Promise);
 
-            if (self.authToken) {
-                self.api.authToken = self.authToken;
-            }
+			if (self.authToken) {
+				self.api.authToken = self.authToken;
+			}
 
-            // Service definition
-            return {
-                setAuthToken: function (newToken) {
-                    self.authToken = newToken;
-                    self.api.authToken = newToken;
-                },
+			// Service definition
+			return {
+				setAuthToken: function (newToken) {
+					self.authToken = newToken;
+					self.api.authToken = newToken;
+				},
 
-                // Subscription wrappers
-                subscribe: function (name, callback) {
-                    return self.api.subscribe(name, function (e) {
-                        $rootScope.$apply(function () {
-                            callback(e);
-                        });
-                    });
-                },
-                unsubscribe: function (name, callback) {
-                    return self.api.unsubscribe(name, function (e) {
-                        $rootScope.$apply(function () {
-                            callback(e);
-                        });
-                    });
-                },
+				connect: function () {
+					return $q.when(self.api.connect());
+				},
 
-                // API index
-                info: function () {
-                    return $q.when(self.api.info());
-                },
+				// Subscription wrappers
+				subscribe: function (name, callback) {
+					return self.api.subscribe(name, function (e) {
+						$rootScope.$apply(function () {
+							callback(e);
+						});
+					});
+				},
 
-                // Accounts
-                accounts: {
-                    create: {
-                        register: function (query) {
-                            return $q.when(self.api.accounts.create.register(query));
-                        },
-                        verify: function (query) {
-                            return $q.when(self.api.accounts.create.verify(query));
-                        },
-                        setup: function (query) {
-                            return $q.when(self.api.accounts.create.setup(query));
-                        }
-                    },
-                    get: function (who) {
-                        return $q.when(self.api.accounts.get(who));
-                    },
-                    update: function (who, what) {
-                        return $q.when(self.api.accounts.update(who, what));
-                    },
-                    "delete": function (who) {
-                        return $q.when(self.api.accounts["delete"](who));
-                    },
-                    wipeData: function (whose) {
-                        return $q.when(self.api.accounts.wipeData(whose));
-                    }
-                },
+				unSubscribe: function (name, callback) {
+					return self.api.unSubscribe(name, function (e) {
+						$rootScope.$apply(function () {
+							callback(e);
+						});
+					});
+				},
 
-                // Contacts
-                contacts: {
-                    list: function () {
-                        return $q.when(self.api.contacts.list());
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.contacts.create(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.contacts.get(id));
-                    },
-                    update: function (id, query) {
-                        return $q.when(self.api.contacts.update(id, query));
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.contacts["delete"](id));
-                    }
-                },
+				// API index
+				info: function () {
+					return $q.when(self.api.info());
+				},
 
-                // Emails
-                emails: {
-                    list: function (query) {
-                        return $q.when(self.api.emails.list(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.emails.get(id));
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.emails.create(query));
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.emails["delete"](id));
-                    }
-                },
+				// Accounts
+				accounts: {
+					create: {
+						register: function (query) {
+							return $q.when(self.api.accounts.create.register(query));
+						},
+						verify: function (query) {
+							return $q.when(self.api.accounts.create.verify(query));
+						},
+						setup: function (query) {
+							return $q.when(self.api.accounts.create.setup(query));
+						}
+					},
+					get: function (who) {
+						return $q.when(self.api.accounts.get(who));
+					},
+					update: function (who, what) {
+						return $q.when(self.api.accounts.update(who, what));
+					},
+					"delete": function (who) {
+						return $q.when(self.api.accounts["delete"](who));
+					},
+					wipeData: function (whose) {
+						return $q.when(self.api.accounts.wipeData(whose));
+					}
+				},
 
-                // Files
-                files: {
-                    list: function () {
-                        return $q.when(self.api.files.list());
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.files.create(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.files.get(id));
-                    },
-                    update: function (id, query) {
-                        return $q.when(self.api.files.update(id, query));
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.files["delete"](id));
-                    }
-                },
+				// Attachments
+				attachments: {
+					list: function () {
+						return $q.when(self.api.attachments.list());
+					},
+					create: function (query) {
+						return $q.when(self.api.attachments.create(query));
+					},
+					get: function (id) {
+						return $q.when(self.api.attachments.get(id));
+					},
+					update: function (id, query) {
+						return $q.when(self.api.attachments.update(id, query));
+					},
+					"delete": function (id) {
+						return $q.when(self.api.attachments["delete"](id));
+					}
+				},
 
-                // Labels
-                labels: {
-                    list: function () {
-                        return $q.when(self.api.labels.list());
-                    },
-                    get: function (query) {
-                        return $q.when(self.api.labels.get(query));
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.labels.create(query));
-                    },
-                    "delete": function (query) {
-                        return $q.when(self.api.labels["delete"](query));
-                    },
-                    update: function (id, query) {
-                        return $q.when(self.api.labels.update(id, query));
-                    }
-                },
+				// Contacts
+				contacts: {
+					list: function () {
+						return $q.when(self.api.contacts.list());
+					},
+					create: function (query) {
+						return $q.when(self.api.contacts.create(query));
+					},
+					get: function (id) {
+						return $q.when(self.api.contacts.get(id));
+					},
+					update: function (id, query) {
+						return $q.when(self.api.contacts.update(id, query));
+					},
+					"delete": function (id) {
+						return $q.when(self.api.contacts["delete"](id));
+					}
+				},
 
-                // Keys
-                keys: {
-                    list: function (query) {
-                        return $q.when(self.api.keys.list(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.keys.get(id));
-                    },
-                    create: function (key) {
-                        return $q.when(self.api.keys.create(key));
-                    }
-                },
+				// Emails
+				emails: {
+					list: function (query) {
+						return $q.when(self.api.emails.list(query));
+					},
+					get: function (id) {
+						return $q.when(self.api.emails.get(id));
+					},
+					create: function (query) {
+						return $q.when(self.api.emails.create(query));
+					},
+					"delete": function (id) {
+						return $q.when(self.api.emails["delete"](id));
+					}
+				},
 
-                // Threads
-                threads: {
-                    list: function (query) {
-                        return $q.when(self.api.threads.list(query));
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.threads.get(id));
-                    },
-                    update: function (id, query) {
-                        return $q.when(self.api.threads.update(id, query));
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.threads["delete"](id));
-                    }
-                },
+				// Labels
+				labels: {
+					list: function () {
+						return $q.when(self.api.labels.list());
+					},
+					get: function (query) {
+						return $q.when(self.api.labels.get(query));
+					},
+					create: function (query) {
+						return $q.when(self.api.labels.create(query));
+					},
+					"delete": function (query) {
+						return $q.when(self.api.labels["delete"](query));
+					},
+					update: function (id, query) {
+						return $q.when(self.api.labels.update(id, query));
+					}
+				},
 
-                // Tokens
-                tokens: {
-                    getCurrent: function () {
-                        return $q.when(self.api.tokens.getCurrent());
-                    },
-                    get: function (id) {
-                        return $q.when(self.api.tokens.get(id));
-                    },
-                    create: function (query) {
-                        return $q.when(self.api.tokens.create(query));
-                    },
-                    deleteCurrent: function () {
-                        return $q.when(self.api.tokens.deleteCurrent());
-                    },
-                    "delete": function (id) {
-                        return $q.when(self.api.tokens["delete"](id));
-                    }
-                }
-            };
-        };
+				// Keys
+				keys: {
+					list: function (query) {
+						return $q.when(self.api.keys.list(query));
+					},
+					get: function (id) {
+						return $q.when(self.api.keys.get(id));
+					},
+					create: function (key) {
+						return $q.when(self.api.keys.create(key));
+					}
+				},
 
-        return self;
-    });
+				// Threads
+				threads: {
+					list: function (query) {
+						return $q.when(self.api.threads.list(query));
+					},
+					get: function (id) {
+						return $q.when(self.api.threads.get(id));
+					},
+					update: function (id, query) {
+						return $q.when(self.api.threads.update(id, query));
+					},
+					"delete": function (id) {
+						return $q.when(self.api.threads["delete"](id));
+					}
+				},
+
+				// Tokens
+				tokens: {
+					getCurrent: function () {
+						return $q.when(self.api.tokens.getCurrent());
+					},
+					get: function (id) {
+						return $q.when(self.api.tokens.get(id));
+					},
+					create: function (query) {
+						return $q.when(self.api.tokens.create(query));
+					},
+					deleteCurrent: function () {
+						return $q.when(self.api.tokens.deleteCurrent());
+					},
+					"delete": function (id) {
+						return $q.when(self.api.tokens["delete"](id));
+					}
+				}
+			};
+		};
+
+		return self;
+	});
 }).call(window);

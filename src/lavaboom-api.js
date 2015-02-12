@@ -17,7 +17,7 @@
 			'Microsoft.XmlHttp'
 		];
 
-		let xhr;
+		let xhr = null;
 		for (let i = 0; i < versions.length; i++) {
 			try {
 				xhr = new ActiveXObject(versions[i]);
@@ -59,13 +59,16 @@
 	).join('&');
 
 	/* API client class */
-	this.Lavaboom = function(url, apiToken, Promise) {
+	this.Lavaboom = function(url, apiToken, __Promise) {
 		let self = this;
 
+		var Promise = __Promise || window.Promise;
+
 		// Default Lavaboom API URL
-		if (!url) {
-			url = 'https://api.lavaboom.com';
-		}
+		if (!url)
+			throw new Error('URL required!');
+		if (!Promise)
+			throw new Error('Promise implementation required!');
 
 		// Push it to the class
 		self.url = url;
@@ -177,6 +180,9 @@
 			return new Promise((resolve, reject) => {
 				// Get a new AJAX object
 				let req = getAjaxRequest();
+
+				if (!req)
+					return reject(new Error('Ajax isn\'t supported!'));
 
 				// Start the request. Last param is whether it should be performed async or not
 				req.open(method, url + path, true);

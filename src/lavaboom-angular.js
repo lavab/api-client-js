@@ -7,110 +7,112 @@
 		// Define provider's scope
 		let self = this;
 
+		let api = null;
+
 		// LavaboomAPI definition
 		self.$get = function($q, $rootScope) {
 			// Initialize a new API token
-			self.api = new Lavaboom(self.url, self.specialToken, Promise);
+			if (!api)
+				api = new Lavaboom(self.url, self.specialToken, Promise);
 
-			if (self.authToken) {
-				self.api.authToken = self.authToken;
-			}
+			if (self.authToken)
+				api.authToken = self.authToken;
 
 			// Service definition
 			return {
 				setAuthToken: (newToken) => {
 					self.authToken = newToken;
-					self.api.authToken = newToken;
+					api.authToken = newToken;
 				},
 
-				connect: () => $q.when(self.api.connect()),
+				connect: () => $q.when(api.connect()),
 
 				// Subscription wrappers
-				subscribe: (name, callback) => self.api.subscribe(name, function(e) {
+				subscribe: (name, callback) => api.subscribe(name, function(e) {
 					$rootScope.$apply(function() {
 						callback(e);
 					});
 				}),
 
-				unSubscribe: (name, callback) => self.api.unSubscribe(name, function(e) {
+				unSubscribe: (name, callback) => api.unSubscribe(name, function(e) {
 					$rootScope.$apply(function() {
 						callback(e);
 					});
 				}),
 
 				// API index
-				info: () => $q.when(self.api.info()),
+				info: () => $q.when(api.info()),
 
 				// Accounts
 				accounts: {
 					create: {
-						register: (query) => $q.when(self.api.accounts.create.register(query)),
-						verify: (query) => $q.when(self.api.accounts.create.verify(query)),
-						setup: (query) => $q.when(self.api.accounts.create.setup(query))
+						register: (query) => $q.when(api.accounts.create.register(query)),
+						verify: (query) => $q.when(api.accounts.create.verify(query)),
+						setup: (query) => $q.when(api.accounts.create.setup(query))
 					},
-					get: (who) => $q.when(self.api.accounts.get(who)),
-					update: (who, what) => $q.when(self.api.accounts.update(who, what)),
-					delete: (who) => $q.when(self.api.accounts.delete(who)),
-					wipeData: (whose) => $q.when(self.api.accounts.wipeData(whose))
+					get: (who) => $q.when(api.accounts.get(who)),
+					update: (who, what) => $q.when(api.accounts.update(who, what)),
+					delete: (who) => $q.when(api.accounts.delete(who)),
+					wipeData: (whose) => $q.when(api.accounts.wipeData(whose))
 				},
 
 				// Attachments
 				attachments: {
-					list: () => $q.when(self.api.attachments.list()),
-					create: (query) => $q.when(self.api.attachments.create(query)),
-					get: (id) => $q.when(self.api.attachments.get(id)),
-					update: (id, query) => $q.when(self.api.attachments.update(id, query)),
-					delete: (id) => $q.when(self.api.attachments.delete(id))
+					list: () => $q.when(api.attachments.list()),
+					create: (query) => $q.when(api.attachments.create(query)),
+					get: (id) => $q.when(api.attachments.get(id)),
+					update: (id, query) => $q.when(api.attachments.update(id, query)),
+					delete: (id) => $q.when(api.attachments.delete(id))
 				},
 
 				// Contacts
 				contacts: {
-					list: () => $q.when(self.api.contacts.list()),
-					create: (query) => $q.when(self.api.contacts.create(query)),
-					get: (id) => $q.when(self.api.contacts.get(id)),
-					update: (id, query) => $q.when(self.api.contacts.update(id, query)),
-					delete: (id) => $q.when(self.api.contacts.delete(id))
+					list: () => $q.when(api.contacts.list()),
+					create: (query) => $q.when(api.contacts.create(query)),
+					get: (id) => $q.when(api.contacts.get(id)),
+					update: (id, query) => $q.when(api.contacts.update(id, query)),
+					delete: (id) => $q.when(api.contacts.delete(id))
 				},
 
 				// Emails
 				emails: {
-					list: (query) => $q.when(self.api.emails.list(query)),
-					get: (id) => $q.when(self.api.emails.get(id)),
-					create: (query) => $q.when(self.api.emails.create(query)),
-					delete: (id) => $q.when(self.api.emails.delete(id))
+					list: (query) => $q.when(api.emails.list(query)),
+					get: (id) => $q.when(api.emails.get(id)),
+					create: (query) => $q.when(api.emails.create(query)),
+					delete: (id) => $q.when(api.emails.delete(id))
 				},
 
 				// Labels
 				labels: {
-					list: () => $q.when(self.api.labels.list()),
-					get: (query) => $q.when(self.api.labels.get(query)),
-					create: (query) => $q.when(self.api.labels.create(query)),
-					delete: (query) => $q.when(self.api.labels.delete(query)),
-					update: (id, query) => $q.when(self.api.labels.update(id, query))
+					list: () => $q.when(api.labels.list()),
+					get: (query) => $q.when(api.labels.get(query)),
+					create: (query) => $q.when(api.labels.create(query)),
+					delete: (query) => $q.when(api.labels.delete(query)),
+					update: (id, query) => $q.when(api.labels.update(id, query))
 				},
 
 				// Keys
 				keys: {
-					list: (query) => $q.when(self.api.keys.list(query)),
-					get: (id) => $q.when(self.api.keys.get(id)),
-					create: (key) => $q.when(self.api.keys.create(key))
+					list: (query) => $q.when(api.keys.list(query)),
+					get: (id) => $q.when(api.keys.get(id)),
+					create: (key) => $q.when(api.keys.create(key))
 				},
 
 				// Threads
 				threads: {
-					list: (query) => $q.when(self.api.threads.list(query)),
-					get: (id) => $q.when(self.api.threads.get(id)),
-					update: (id, query) => $q.when(self.api.threads.update(id, query)),
-					delete: (id) => $q.when(self.api.threads.delete(id))
+					list: (query) => $q.when(api.threads.list(query)),
+					get: (id) => $q.when(api.threads.get(id)),
+					update: (id, query) => $q.when(api.threads.update(id, query)),
+					delete: (id) => $q.when(api.threads.delete(id))
 				},
 
 				// Tokens
 				tokens: {
-					getCurrent: () => $q.when(self.api.tokens.getCurrent()),
-					get: (id) => $q.when(self.api.tokens.get(id)),
-					create: (query) => $q.when(self.api.tokens.create(query)),
-					deleteCurrent: () => $q.when(self.api.tokens.deleteCurrent()),
-					delete: (id) => $q.when(self.api.tokens.delete(id))
+					getCurrent: () => $q.when(api.tokens.getCurrent()),
+					get: (id) => $q.when(api.tokens.get(id)),
+					create: (query) => $q.when(api.tokens.create(query)),
+					deleteCurrent: () => $q.when(api.tokens.deleteCurrent()),
+					delete: (id) => $q.when(api.tokens.delete(id))
 				}
 			};
 		};

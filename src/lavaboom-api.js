@@ -65,6 +65,9 @@
 		// Default Lavaboom API URL
 		if (!url)
 			throw new Error('URL required!');
+		if (!transport)
+			throw new Error('Transport required(http or sockjs)!');
+
 		if (typeof Promise === 'undefined')
 			throw new Error('Promise implementation required!');
 		if (transport == 'sockjs' && typeof SockJS === 'undefined')

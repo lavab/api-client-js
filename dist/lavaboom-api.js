@@ -57,21 +57,23 @@
 	};
 
 	/* API client class */
-	this.Lavaboom = function (url, apiToken, __Promise) {
+	this.Lavaboom = function (url, apiToken, transport) {
 		var self = this;
-
-		var Promise = __Promise || window.Promise;
 
 		// Default Lavaboom API URL
 		if (!url) throw new Error("URL required!");
-		if (!Promise) throw new Error("Promise implementation required!");
+		if (!transport) throw new Error("Transport required(http or sockjs)!");
+
+		if (typeof Promise === "undefined") throw new Error("Promise implementation required!");
+		if (transport == "sockjs" && typeof SockJS === "undefined") throw new Error("Sockjs transport is required but not available!");
 
 		// Push it to the class
 		self.url = url;
 		self.apiToken = apiToken;
+		self.transport = transport;
 
 		// Use SockJS if it's loaded
-		if (typeof SockJS !== "undefined") {
+		if (self.transport == "sockjs") {
 			// Create a new connection
 			self.sockjs = new SockJS(url + "/ws");
 
@@ -105,7 +107,7 @@
 			return new Promise(function (resolve, reject) {
 				if (isConnected) return resolve();
 
-				if (typeof SockJS !== "undefined") {
+				if (self.sockjs) {
 					self.sockjs.onopen = function () {
 						isConnected = true;
 						resolve();

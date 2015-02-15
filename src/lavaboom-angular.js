@@ -3,7 +3,7 @@
 /* global Lavaboom */
 
 (function() {
-	angular.module('lavaboom.api', []).provider('LavaboomAPI', function LavaboomAPIProvider() {
+	let createLavaboomAPIProvider = (transport) => function LavaboomAPIProvider() {
 		// Define provider's scope
 		let self = this;
 
@@ -13,7 +13,7 @@
 		self.$get = function($q, $rootScope) {
 			// Initialize a new API token
 			if (!api)
-				api = new Lavaboom(self.url, self.specialToken, Promise);
+				api = new Lavaboom(self.url, self.specialToken, transport);
 
 			if (self.authToken)
 				api.authToken = self.authToken;
@@ -118,5 +118,9 @@
 		};
 
 		return self;
-	});
+	}
+
+	angular.module('lavaboom.api', [])
+		.provider('LavaboomAPI', createLavaboomAPIProvider('sockjs'))
+		.provider('LavaboomHttpAPI', createLavaboomAPIProvider('http'));
 }).call(window);

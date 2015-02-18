@@ -302,23 +302,13 @@
 		self.accounts = {
 			create: {
 				register: function (query) {
-					return self.post("/accounts", {
-						username: query.username,
-						alt_email: query.alt_email
-					});
+					return self.post("/accounts", query);
 				},
 				verify: function (query) {
-					return self.post("/accounts", {
-						username: query.username,
-						invite_code: query.invite_code
-					});
+					return self.post("/accounts", query);
 				},
 				setup: function (query) {
-					return self.post("/accounts", {
-						username: query.username,
-						invite_code: query.invite_code,
-						password: query.password
-					});
+					return self.post("/accounts", query);
 				}
 			},
 			get: function (who) {
@@ -341,27 +331,13 @@
 				return self.get("/accounts");
 			},
 			create: function (query) {
-				return self.post("/attachments", {
-					data: query.data,
-					name: query.name,
-					encoding: query.encoding,
-					version_major: query.version_major,
-					version_minor: query.version_minor,
-					pgp_fingerprints: query.pgp_fingerprints
-				});
+				return self.post("/attachments", query);
 			},
 			get: function (id) {
 				return self.get("/attachments/" + id);
 			},
 			update: function (id, query) {
-				return self.put("/attachments/" + id, {
-					data: query.data,
-					name: query.name,
-					encoding: query.encoding,
-					version_major: query.version_major,
-					version_minor: query.version_minor,
-					pgp_fingerprints: query.pgp_fingerprints
-				});
+				return self.put("/attachments/" + id, query);
 			},
 			"delete": function (id) {
 				return self["delete"]("/attachments/" + id);
@@ -387,14 +363,7 @@
 				return self.get("/contacts/" + id);
 			},
 			update: function (id, query) {
-				return self.put("/contacts/" + id, {
-					data: query.data,
-					name: query.name,
-					encoding: query.encoding,
-					version_major: query.version_major,
-					version_minor: query.version_minor,
-					pgp_fingerprints: query.pgp_fingerprints
-				});
+				return self.put("/contacts/" + id, query);
 			},
 			"delete": function (id) {
 				return self["delete"]("/contacts/" + id);
@@ -410,20 +379,7 @@
 				return self.get("/emails/" + id);
 			},
 			create: function (query) {
-				return self.post("/emails", {
-					to: query.to,
-					cc: query.cc,
-					bcc: query.bcc,
-					reply_to: query.reply_to,
-					thread_id: query.thread_id,
-					subject: query.subject,
-					is_encrypted: query.is_encrypted,
-					body: query.body,
-					body_version_major: query.body_version_major,
-					body_version_minor: query.body_version_minor,
-					attachments: query.attachments,
-					pgp_fingerprints: query.pgp_fingerprints
-				});
+				return self.post("/emails", query);
 			},
 			"delete": function (id) {
 				return self["delete"]("/emails/" + id);
@@ -477,11 +433,7 @@
 				return self.get("/threads/" + id);
 			},
 			update: function (id, query) {
-				return self.put("/threads/" + id, {
-					labels: query.labels,
-					is_read: query.is_read,
-					last_read: query.last_read
-				});
+				return self.put("/threads/" + id, query);
 			},
 			"delete": function (id) {
 				return self["delete"]("/threads/" + id);
@@ -497,12 +449,7 @@
 				return self.get("/tokens/" + id);
 			},
 			create: function (query) {
-				return self.post("/tokens", {
-					username: query.username,
-					password: query.password,
-					type: query.type,
-					token: query.token
-				});
+				return self.post("/tokens", query);
 			},
 			deleteCurrent: function () {
 				return self["delete"]("/tokens");

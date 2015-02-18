@@ -313,19 +313,9 @@
 		// Accounts
 		self.accounts = {
 			create: {
-				register: (query) => self.post('/accounts', {
-					username: query.username,
-					alt_email: query.alt_email
-				}),
-				verify: (query) => self.post('/accounts', {
-					username: query.username,
-					invite_code: query.invite_code
-				}),
-				setup: (query) => self.post('/accounts', {
-					username: query.username,
-					invite_code: query.invite_code,
-					password: query.password
-				})
+				register: (query) => self.post('/accounts', query),
+				verify: (query) => self.post('/accounts', query),
+				setup: (query) => self.post('/accounts', query)
 			},
 			get: (who) => self.get('/accounts/' + who),
 			update: (who, what) => self.put('/accounts/' + who, what),
@@ -336,23 +326,9 @@
 		// Attachments
 		self.attachments = {
 			list: () => self.get('/accounts'),
-			create: (query) => self.post('/attachments', {
-				data: query.data,
-				name: query.name,
-				encoding: query.encoding,
-				version_major: query.version_major,
-				version_minor: query.version_minor,
-				pgp_fingerprints: query.pgp_fingerprints
-			}),
+			create: (query) => self.post('/attachments', query),
 			get: (id) => self.get('/attachments/' + id),
-			update: (id, query) => self.put('/attachments/' + id, {
-				data: query.data,
-				name: query.name,
-				encoding: query.encoding,
-				version_major: query.version_major,
-				version_minor: query.version_minor,
-				pgp_fingerprints: query.pgp_fingerprints
-			}),
+			update: (id, query) => self.put('/attachments/' + id, query),
 			delete: (id) => self.delete('/attachments/' + id)
 		};
 
@@ -368,14 +344,7 @@
 				pgp_fingerprints: query.pgp_fingerprints
 			}),
 			get: (id) => self.get('/contacts/' + id),
-			update: (id, query) => self.put('/contacts/' + id, {
-				data: query.data,
-				name: query.name,
-				encoding: query.encoding,
-				version_major: query.version_major,
-				version_minor: query.version_minor,
-				pgp_fingerprints: query.pgp_fingerprints
-			}),
+			update: (id, query) => self.put('/contacts/' + id, query),
 			delete: (id) => self.delete('/contacts/' + id)
 		};
 
@@ -383,20 +352,7 @@
 		self.emails = {
 			list: (query) => self.get('/emails', query),
 			get: (id) => self.get('/emails/' + id),
-			create: (query) => self.post('/emails', {
-				to: query.to,
-				cc: query.cc,
-				bcc: query.bcc,
-				reply_to: query.reply_to,
-				thread_id: query.thread_id,
-				subject: query.subject,
-				is_encrypted: query.is_encrypted,
-				body: query.body,
-				body_version_major: query.body_version_major,
-				body_version_minor: query.body_version_minor,
-				attachments: query.attachments,
-				pgp_fingerprints: query.pgp_fingerprints
-			}),
+			create: (query) => self.post('/emails', query),
 			delete: (id) => self.delete('/emails/' + id)
 		};
 
@@ -426,11 +382,7 @@
 		self.threads = {
 			list: (query) => self.get('/threads', query),
 			get: (id) => self.get('/threads/' + id),
-			update: (id, query) => self.put('/threads/' + id, {
-				labels: query.labels,
-				is_read: query.is_read,
-				last_read: query.last_read
-			}),
+			update: (id, query) => self.put('/threads/' + id, query),
 			delete: (id) => self.delete('/threads/' + id)
 		};
 
@@ -438,12 +390,7 @@
 		self.tokens = {
 			getCurrent: () => self.get('/tokens'),
 			get: id => self.get('/tokens/' + id),
-			create: query => self.post('/tokens', {
-				username: query.username,
-				password: query.password,
-				type: query.type,
-				token: query.token
-			}),
+			create: query => self.post('/tokens', query),
 			deleteCurrent: () => self.delete('/tokens'),
 			delete: id => self.delete('/tokens/' + id)
 		};

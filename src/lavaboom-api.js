@@ -335,14 +335,7 @@
 		// Contacts
 		self.contacts = {
 			list: () => self.get('/contacts'),
-			create: (query) => self.post('/contacts', {
-				data: query.data,
-				name: query.name,
-				encoding: query.encoding,
-				version_major: query.version_major,
-				version_minor: query.version_minor,
-				pgp_fingerprints: query.pgp_fingerprints
-			}),
+			create: (query) => self.post('/contacts', query),
 			get: (id) => self.get('/contacts/' + id),
 			update: (id, query) => self.put('/contacts/' + id, query),
 			delete: (id) => self.delete('/contacts/' + id)

@@ -118,7 +118,7 @@
 		};
 
 		return self;
-	}
+	};
 
 	angular.module('lavaboom.api', [])
 		.provider('LavaboomAPI', createLavaboomAPIProvider('sockjs'))

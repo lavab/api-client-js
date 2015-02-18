@@ -79,8 +79,8 @@
 						}
 					},
 
-					// Attachments
-					attachments: {
+					// Files
+					files: {
 						list: function () {
 							return $q.when(api.attachments.list());
 						},

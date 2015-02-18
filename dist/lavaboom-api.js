@@ -325,22 +325,22 @@
 			}
 		};
 
-		// Attachments
-		self.attachments = {
+		// Files
+		self.files = {
 			list: function () {
-				return self.get("/accounts");
+				return self.get("/files");
 			},
 			create: function (query) {
-				return self.post("/attachments", query);
+				return self.post("/files", query);
 			},
 			get: function (id) {
-				return self.get("/attachments/" + id);
+				return self.get("/files/" + id);
 			},
 			update: function (id, query) {
-				return self.put("/attachments/" + id, query);
+				return self.put("/files/" + id, query);
 			},
 			"delete": function (id) {
-				return self["delete"]("/attachments/" + id);
+				return self["delete"]("/files/" + id);
 			}
 		};
 

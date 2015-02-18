@@ -323,13 +323,13 @@
 			wipeData: (who) => self.post('/accounts/' + who + '/wipe-data')
 		};
 
-		// Attachments
-		self.attachments = {
-			list: () => self.get('/accounts'),
-			create: (query) => self.post('/attachments', query),
-			get: (id) => self.get('/attachments/' + id),
-			update: (id, query) => self.put('/attachments/' + id, query),
-			delete: (id) => self.delete('/attachments/' + id)
+		// Files
+		self.files = {
+			list: () => self.get('/files'),
+			create: (query) => self.post('/files', query),
+			get: (id) => self.get('/files/' + id),
+			update: (id, query) => self.put('/files/' + id, query),
+			delete: (id) => self.delete('/files/' + id)
 		};
 
 		// Contacts

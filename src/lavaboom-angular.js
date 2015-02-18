@@ -56,8 +56,8 @@
 					wipeData: (whose) => $q.when(api.accounts.wipeData(whose))
 				},
 
-				// Attachments
-				attachments: {
+				// Files
+				files: {
 					list: () => $q.when(api.attachments.list()),
 					create: (query) => $q.when(api.attachments.create(query)),
 					get: (id) => $q.when(api.attachments.get(id)),

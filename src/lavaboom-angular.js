@@ -58,11 +58,11 @@
 
 				// Files
 				files: {
-					list: () => $q.when(api.attachments.list()),
-					create: (query) => $q.when(api.attachments.create(query)),
-					get: (id) => $q.when(api.attachments.get(id)),
-					update: (id, query) => $q.when(api.attachments.update(id, query)),
-					delete: (id) => $q.when(api.attachments.delete(id))
+					list: () => $q.when(api.files.list()),
+					create: (query) => $q.when(api.files.create(query)),
+					get: (id) => $q.when(api.files.get(id)),
+					update: (id, query) => $q.when(api.files.update(id, query)),
+					delete: (id) => $q.when(api.files.delete(id))
 				},
 
 				// Contacts

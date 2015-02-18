@@ -82,19 +82,19 @@
 					// Files
 					files: {
 						list: function () {
-							return $q.when(api.attachments.list());
+							return $q.when(api.files.list());
 						},
 						create: function (query) {
-							return $q.when(api.attachments.create(query));
+							return $q.when(api.files.create(query));
 						},
 						get: function (id) {
-							return $q.when(api.attachments.get(id));
+							return $q.when(api.files.get(id));
 						},
 						update: function (id, query) {
-							return $q.when(api.attachments.update(id, query));
+							return $q.when(api.files.update(id, query));
 						},
 						"delete": function (id) {
-							return $q.when(api.attachments["delete"](id));
+							return $q.when(api.files["delete"](id));
 						}
 					},
 

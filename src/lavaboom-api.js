@@ -81,30 +81,44 @@
 
 		// Use SockJS if it's loaded
 		if (self.transport == 'sockjs') {
-			// Create a new connection
-			self.sockjs = new SockJS(url + '/ws');
+			let rc = 1;
 
-			// Initialize event handling utility vars
-			self.sockjs_counter = 0;
-			self.handlers = {};
+			function connect() {
+				// Create a new connection
+				self.sockjs = new SockJS(url + '/ws');
 
-			// Incoming message handler
-			self.sockjs.onmessage = function(e) {
-				let msg = JSON.parse(e.data);
+				// Initialize event handling utility vars
+				self.sockjs_counter = 0;
+				self.handlers = {};
 
-				switch (msg.type) {
-					case 'response':
-						if (self.handlers[msg.id])
-							self.handlers[msg.id](msg);
-						break;
-					default:
-						if (self.subscriptions && self.subscriptions[msg.type]) {
-							for (let subscription of self.subscriptions[msg.type])
-								subscription(msg);
-						}
-						break;
-				}
-			};
+				// Incoming message handler
+				self.sockjs.onmessage = (e) => {
+					let msg = JSON.parse(e.data);
+
+					switch (msg.type) {
+						case 'response':
+							if (self.handlers[msg.id])
+								self.handlers[msg.id](msg);
+							break;
+						default:
+							if (self.subscriptions && self.subscriptions[msg.type]) {
+								for (let subscription of self.subscriptions[msg.type])
+									subscription(msg);
+							}
+							break;
+					}
+				};
+
+				// connection closed
+				self.sockjs.onclose = () => {
+					rc = rc < 32 ? rc * 2 : 1;
+					setTimeout(() => {
+						connect();
+					}, rc * 1000);
+				};
+			}
+
+			connect();
 		}
 
 		var isConnected = false;

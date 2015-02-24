@@ -75,31 +75,47 @@
 
 		// Use SockJS if it's loaded
 		if (self.transport == "sockjs") {
-			// Create a new connection
-			self.sockjs = new SockJS(url + "/ws");
+			(function () {
+				var connect = function () {
+					// Create a new connection
+					self.sockjs = new SockJS(url + "/ws");
 
-			// Initialize event handling utility vars
-			self.sockjs_counter = 0;
-			self.handlers = {};
+					// Initialize event handling utility vars
+					self.sockjs_counter = 0;
+					self.handlers = {};
 
-			// Incoming message handler
-			self.sockjs.onmessage = function (e) {
-				var msg = JSON.parse(e.data);
+					// Incoming message handler
+					self.sockjs.onmessage = function (e) {
+						var msg = JSON.parse(e.data);
 
-				switch (msg.type) {
-					case "response":
-						if (self.handlers[msg.id]) self.handlers[msg.id](msg);
-						break;
-					default:
-						if (self.subscriptions && self.subscriptions[msg.type]) {
-							for (var _iterator = self.subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
-								var subscription = _step.value;
-								subscription(msg);
-							}
+						switch (msg.type) {
+							case "response":
+								if (self.handlers[msg.id]) self.handlers[msg.id](msg);
+								break;
+							default:
+								if (self.subscriptions && self.subscriptions[msg.type]) {
+									for (var _iterator = self.subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+										var subscription = _step.value;
+										subscription(msg);
+									}
+								}
+								break;
 						}
-						break;
-				}
-			};
+					};
+
+					// connection closed
+					self.sockjs.onclose = function () {
+						rc = rc < 32 ? rc * 2 : 1;
+						setTimeout(function () {
+							connect();
+						}, rc * 1000);
+					};
+				};
+
+				var rc = 1;
+
+				connect();
+			})();
 		}
 
 		var isConnected = false;

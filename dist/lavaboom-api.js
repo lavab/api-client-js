@@ -57,7 +57,8 @@
 	};
 
 	/* API client class */
-	this.Lavaboom = function (url, apiToken, transport) {
+
+	var Lavaboom = function (url, apiToken, transport) {
 		var self = this;
 
 		// Default Lavaboom API URL
@@ -350,14 +351,7 @@
 				return self.get("/contacts");
 			},
 			create: function (query) {
-				return self.post("/contacts", {
-					data: query.data,
-					name: query.name,
-					encoding: query.encoding,
-					version_major: query.version_major,
-					version_minor: query.version_minor,
-					pgp_fingerprints: query.pgp_fingerprints
-				});
+				return self.post("/contacts", query);
 			},
 			get: function (id) {
 				return self.get("/contacts/" + id);
@@ -458,7 +452,15 @@
 				return self["delete"]("/tokens/" + id);
 			}
 		};
-
-		return self;
 	};
+
+	var instances = {};
+
+	Lavaboom.getInstance = function (url, apiToken, transport) {
+		var key = "" + url + "." + transport;
+		if (!instances[key]) instances[key] = new Lavaboom(url, apiToken, transport);
+		return instances[key];
+	};
+
+	this.Lavaboom = Lavaboom;
 }).call(window);

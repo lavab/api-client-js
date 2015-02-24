@@ -7,13 +7,16 @@
 		// Define provider's scope
 		let self = this;
 
+		self.url = null;
+		self.specialToken = null;
+
 		let api = null;
 
 		// LavaboomAPI definition
 		self.$get = function($q, $rootScope) {
 			// Initialize a new API token
 			if (!api)
-				api = new Lavaboom(self.url, self.specialToken, transport);
+				api = Lavaboom.getInstance(self.url, self.specialToken, transport);
 
 			if (self.authToken)
 				api.authToken = self.authToken;

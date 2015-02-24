@@ -55,11 +55,12 @@
 	}
 
 	var encodeQueryData = data => Object.keys(data).map(k =>
-			encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
+		encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
 	).join('&');
 
 	/* API client class */
-	this.Lavaboom = function(url, apiToken, transport) {
+
+	let Lavaboom = function(url, apiToken, transport) {
 		let self = this;
 
 		// Default Lavaboom API URL
@@ -387,7 +388,16 @@
 			deleteCurrent: () => self.delete('/tokens'),
 			delete: id => self.delete('/tokens/' + id)
 		};
+	};
 
-		return self;
-	}
+	let instances = {};
+
+	Lavaboom.getInstance = (url, apiToken, transport) => {
+		let key = `${url}.${transport}`;
+		if (!instances[key])
+			instances[key] = new Lavaboom(url, apiToken, transport);
+		return instances[key];
+	};
+
+	this.Lavaboom = Lavaboom;
 }).call(window);

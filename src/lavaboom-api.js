@@ -340,7 +340,7 @@
 
 		// Files
 		self.files = {
-			list: () => self.get('/files'),
+			list: (query) => self.get('/files', query),
 			create: (query) => self.post('/files', query),
 			get: (id) => self.get('/files/' + id),
 			update: (id, query) => self.put('/files/' + id, query),

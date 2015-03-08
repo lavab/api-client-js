@@ -84,8 +84,8 @@
 
 					// Files
 					files: {
-						list: function () {
-							return $q.when(api.files.list());
+						list: function (query) {
+							return $q.when(api.files.list(query));
 						},
 						create: function (query) {
 							return $q.when(api.files.create(query));

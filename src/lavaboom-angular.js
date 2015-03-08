@@ -61,7 +61,7 @@
 
 				// Files
 				files: {
-					list: () => $q.when(api.files.list()),
+					list: (query) => $q.when(api.files.list(query)),
 					create: (query) => $q.when(api.files.create(query)),
 					get: (id) => $q.when(api.files.get(id)),
 					update: (id, query) => $q.when(api.files.update(id, query)),

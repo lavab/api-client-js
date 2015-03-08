@@ -344,8 +344,8 @@
 
 		// Files
 		self.files = {
-			list: function () {
-				return self.get("/files");
+			list: function (query) {
+				return self.get("/files", query);
 			},
 			create: function (query) {
 				return self.post("/files", query);

@@ -335,7 +335,8 @@
 			get: (who) => self.get('/accounts/' + who),
 			update: (who, what) => self.put('/accounts/' + who, what),
 			delete: (who) => self.delete('/accounts/' + who),
-			wipeData: (who) => self.post('/accounts/' + who + '/wipe-data')
+			wipeData: (who) => self.post('/accounts/' + who + '/wipe-data'),
+			startOnboarding: (who) => self.post('/accounts/' + who + '/start-onboarding')
 		};
 
 		// Files

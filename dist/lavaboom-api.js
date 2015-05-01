@@ -339,6 +339,9 @@
 			},
 			wipeData: function (who) {
 				return self.post("/accounts/" + who + "/wipe-data");
+			},
+			startOnboarding: function (who) {
+				return self.post("/accounts/" + who + "/start-onboarding");
 			}
 		};
 

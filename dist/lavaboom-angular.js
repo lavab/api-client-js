@@ -1,16 +1,17 @@
-'use strict';
+"use strict";
 
 /* jshint esnext: true */
 /* global angular */
 /* global Lavaboom */
 
 (function () {
-	function createLavaboomAPIProvider (transport) {
+	var createLavaboomAPIProvider = function (transport) {
 		return function LavaboomAPIProvider() {
 			// Define provider's scope
 			var self = this;
 
 			self.url = null;
+			self.authToken = null;
 			self.specialToken = null;
 
 			var api = null;
@@ -24,12 +25,18 @@
 
 				// Service definition
 				return {
-					setAuthToken: newToken => {
+					setAuthToken: function (newToken) {
 						self.authToken = newToken;
 						api.authToken = newToken;
 					},
 
-					connect: () => $q.when(api.connect()),
+					connect: function (opts) {
+						return $q.when(api.connect(opts));
+					},
+
+					isConnected: function () {
+						return api.isConnected();
+					},
 
 					// Subscription wrappers
 					subscribe: function (name, callback) {
@@ -72,15 +79,16 @@
 						update: function (who, what) {
 							return $q.when(api.accounts.update(who, what));
 						},
-						'delete': function (who) {
-							return $q.when(api.accounts['delete'](who));
+						"delete": function (who) {
+							return $q.when(api.accounts["delete"](who));
 						},
 						wipeData: function (whose) {
 							return $q.when(api.accounts.wipeData(whose));
 						},
 						startOnboarding: function (who) {
 							return $q.when(api.accounts.startOnboarding(who));
-						} },
+						}
+					},
 
 					// Files
 					files: {
@@ -96,8 +104,8 @@
 						update: function (id, query) {
 							return $q.when(api.files.update(id, query));
 						},
-						'delete': function (id) {
-							return $q.when(api.files['delete'](id));
+						"delete": function (id) {
+							return $q.when(api.files["delete"](id));
 						}
 					},
 
@@ -115,8 +123,8 @@
 						update: function (id, query) {
 							return $q.when(api.contacts.update(id, query));
 						},
-						'delete': function (id) {
-							return $q.when(api.contacts['delete'](id));
+						"delete": function (id) {
+							return $q.when(api.contacts["delete"](id));
 						}
 					},
 
@@ -131,8 +139,8 @@
 						create: function (query) {
 							return $q.when(api.emails.create(query));
 						},
-						'delete': function (id) {
-							return $q.when(api.emails['delete'](id));
+						"delete": function (id) {
+							return $q.when(api.emails["delete"](id));
 						}
 					},
 
@@ -147,8 +155,8 @@
 						create: function (query) {
 							return $q.when(api.labels.create(query));
 						},
-						'delete': function (query) {
-							return $q.when(api.labels['delete'](query));
+						"delete": function (query) {
+							return $q.when(api.labels["delete"](query));
 						},
 						update: function (id, query) {
 							return $q.when(api.labels.update(id, query));
@@ -179,8 +187,8 @@
 						update: function (id, query) {
 							return $q.when(api.threads.update(id, query));
 						},
-						'delete': function (id) {
-							return $q.when(api.threads['delete'](id));
+						"delete": function (id) {
+							return $q.when(api.threads["delete"](id));
 						}
 					},
 
@@ -198,8 +206,8 @@
 						deleteCurrent: function () {
 							return $q.when(api.tokens.deleteCurrent());
 						},
-						'delete': function (id) {
-							return $q.when(api.tokens['delete'](id));
+						"delete": function (id) {
+							return $q.when(api.tokens["delete"](id));
 						}
 					}
 				};
@@ -207,10 +215,7 @@
 
 			return self;
 		};
-	}
+	};
 
-	angular.module('lavaboom.api', [])
-		.provider('LavaboomAPI', createLavaboomAPIProvider('sockjs'))
-		.provider('LavaboomHttpAPI', createLavaboomAPIProvider('http'));
-	
+	angular.module("lavaboom.api", []).provider("LavaboomAPI", createLavaboomAPIProvider("sockjs")).provider("LavaboomHttpAPI", createLavaboomAPIProvider("http"));
 }).call(window);

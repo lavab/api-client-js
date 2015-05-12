@@ -8,6 +8,7 @@
 		let self = this;
 
 		self.url = null;
+		self.authToken = null;
 		self.specialToken = null;
 
 		let api = null;
@@ -28,7 +29,9 @@
 					api.authToken = newToken;
 				},
 
-				connect: () => $q.when(api.connect()),
+				connect: (opts) => $q.when(api.connect(opts)),
+
+				isConnected: () => api.isConnected(),
 
 				// Subscription wrappers
 				subscribe: (name, callback) => api.subscribe(name, function(e) {
@@ -57,7 +60,7 @@
 					update: (who, what) => $q.when(api.accounts.update(who, what)),
 					delete: (who) => $q.when(api.accounts.delete(who)),
 					wipeData: (whose) => $q.when(api.accounts.wipeData(whose)),
-					startOnboarding: (who) => $q.when(api.accounts.startOnboarding(who)),
+					startOnboarding: (who) => $q.when(api.accounts.startOnboarding(who))
 				},
 
 				// Files

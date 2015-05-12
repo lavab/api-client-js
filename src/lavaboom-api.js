@@ -78,107 +78,111 @@
 		self.url = url;
 		self.apiToken = apiToken;
 		self.transport = transport;
-		self.subscriptions = {};
-		self.handlers = {};
-		self.sockjs = null;
-		self.sockjsСounter = 0;
-		self.isConnected = false;
-		self.rc = 1;
+
+		let subscriptions = {};
+		let handlers = {};
+		let sockjs = null;
+		let sockjsСounter = 0;
+		
+		let isConnected = false;
+		let rc = 1;
+
 		let defaultTimeout = 10000;
+		let onDisconnectHandler = null;
 
 		const subscribe = () => {
-			self.sockjs.send(JSON.stringify({
+			sockjs.send(JSON.stringify({
 				type: 'subscribe',
 				token: self.authToken
 			}));	
 		};
 		
-		const connect = ({timeout}) => new Promise((resolve, reject) => {
-			if (!timeout)
-				timeout = defaultTimeout;
-			else
-				defaultTimeout = timeout;
+		const connect = () => new Promise((resolve, reject) => {
+			console.debug('sockjs: connecting, timeout', defaultTimeout);
 
-			console.debug('sockjs: connecting, timeout', timeout);
-
-			self.sockjs = new SockJS(url + '/ws');
-			self.sockjsСounter = 0;
-			self.handlers = {};
+			sockjs = new SockJS(url + '/ws');
+			sockjsСounter = 0;
+			handlers = {};
 
 			let connectionTimeout = setTimeout(() => {
 				reject(new Error('timeout'));
-			}, timeout);
+			}, defaultTimeout);
 
-			self.sockjs.onopen = function () {
-				if (Object.keys(self.subscriptions).length > 0)
+			sockjs.onopen = function () {
+				if (Object.keys(subscriptions).length > 0)
 					subscribe();
 				
-				self.isConnected = true;
-				self.rc = 1;
+				isConnected = true;
+				rc = 1;
 
-				clearTimeout(connectionTimeout);
+				if (connectionTimeout) {
+					clearTimeout(connectionTimeout);
+					connectionTimeout = null;
+				}
+
+				console.debug('sockjs: connected');
 				resolve();
 			};
 
-			self.sockjs.onmessage = (e) => {
+			sockjs.onmessage = (e) => {
+				if (connectionTimeout) {
+					clearTimeout(connectionTimeout);
+					connectionTimeout = null;
+				}
+
 				let msg = JSON.parse(e.data);
 
 				switch (msg.type) {
 					case 'response':
-						if (self.handlers[msg.id])
-							self.handlers[msg.id](msg);
+						if (handlers[msg.id])
+							handlers[msg.id](msg);
 						break;
 					default:
-						if (self.subscriptions[msg.type]) {
-							for (let subscription of self.subscriptions[msg.type])
+						if (subscriptions[msg.type]) {
+							for (let subscription of subscriptions[msg.type])
 								subscription(msg);
 						}
 						break;
 				}
 			};
 
-			self.sockjs.onclose = () => {
-				console.debug('sockjs: it\'s dead Jim :()');
+			sockjs.onclose = () => {
+				console.debug('sockjs: it\'s dead Jim :()', onDisconnectHandler);
 
-				for (let id of Object.keys(self.handlers)) {
+				for (let id of Object.keys(handlers)) {
 					console.debug('sockjs: reject handler with id', id);
-					self.handlers[id]({
+					handlers[id]({
 						status: 598,
 						body: JSON.stringify({
 							message: 'Disconnected from SockJS endpoint'
 						})
 					});
 				}
-				self.handlers = {};
-				self.sockjs = null;
-				self.isConnected = false;
+				handlers = {};
+				sockjs = null;
+				isConnected = false;
 
-				if (self.onDisconnect)
-					self.onDisconnect();
+				if (connectionTimeout) {
+					clearTimeout(connectionTimeout);
+					connectionTimeout = null;
+				}
 
-				self.rc = self.rc < 16 ? self.rc * 2 : 1;
+				if (onDisconnectHandler)
+					onDisconnectHandler();
 
-				let timeout = self.rc * 1000;
+				rc = rc < 16 ? rc * 2 : 1;
+
+				let timeout = rc * 1000;
 				setTimeout(connect, timeout);
 
 				console.debug('sockjs: reconnect scheduled after ', timeout);
 			};
 		});
 
-		self.connect = ({timeout}) => new Promise((resolve, reject) => {
-			if (self.isConnected || self.transport != 'sockjs')
-				return resolve();
+		const request = (method, path, data, options) => {
+			if (!options)
+				options = {};
 
-			connect({timeout})
-				.then(r => resolve(r))
-				.catch(err => reject(err));
-		});
-
-		self.isConnected = () => self.isConnected;
-
-		self.onDisconnect = null;
-
-		self.request = (method, path, data, options = {}) => {
 			if (!options.headers)
 				options.headers = {};
 
@@ -194,12 +198,13 @@
 
 			method = method.toUpperCase();
 			if (self.transport == 'sockjs') {
-				if (self.sockjs)
+				if (sockjs)
 					return new Promise((resolve, reject) => {
-						self.sockjsСounter++;
+						sockjsСounter++;
+						let id = sockjsСounter.toString();
 
 						let msg = JSON.stringify({
-							id: self.sockjsСounter.toString(),
+							id: id,
 							type: 'request',
 							method: method,
 							path: path,
@@ -207,9 +212,11 @@
 							headers: options.headers
 						});
 
-						self.sockjs.send(msg);
+						console.debug('sockjs: sending a message', msg);
 
-						self.handlers[self.sockjsСounter.toString()] = (data) => {
+						sockjs.send(msg);
+
+						handlers[id] = (data) => {
 							data.body = JSON.parse(data.body);
 
 							if (data.status >= 200 && data.status < 300) {
@@ -273,10 +280,10 @@
 		};
 
 		const checkSubscribe = () => {
-			if (!self.sockjs)
+			if (!sockjs)
 				throw new Error('Not using SockJS');
 
-			if (!self.isConnected)
+			if (!isConnected)
 				throw new Error('Must be connected');
 
 			if (!self.authToken)
@@ -287,43 +294,63 @@
 			if (data && Object.keys(data).length > 0)
 				path += '?' + encodeQueryData(data);
 
-			return self.request('GET', path, null, options);
+			return request('GET', path, null, options);
 		};
 
 		const invokePost = (path, data, options) => {
-			return self.request('POST', path, data, options);
+			return request('POST', path, data, options);
 		};
 
 		const invokePut = (path, data, options) => {
-			return self.request('PUT', path, data, options);
+			return request('PUT', path, data, options);
 		};
 
 		const invokeDelete = (path, data, options) => {
 			if (data && Object.keys(data).length > 0)
 				path += '?' + encodeQueryData(data);
 
-			return self.request('DELETE', path, null, options);
+			return request('DELETE', path, null, options);
 		};
+
+		self.connect = (opts) => new Promise((resolve, reject) => {
+			if (!opts)
+				opts = {};
+
+			if (!opts.timeout)
+				opts.timeout = defaultTimeout;
+			else
+				defaultTimeout = opts.timeout;
+			onDisconnectHandler = opts.onDisconnect ? opts.onDisconnect : null;
+
+			if (isConnected || self.transport != 'sockjs')
+				return resolve();
+
+			connect(opts)
+				.then(r => resolve(r))
+				.catch(err => reject(err));
+		});
+
+		self.isConnected = () => isConnected;
 
 		// Subscription methods
 		self.subscribe = (name, callback) => {
 			checkSubscribe();
 
-			if (Object.keys(self.subscriptions).length < 1)
+			if (Object.keys(subscriptions).length < 1)
 				subscribe();
 
-			if (!self.subscriptions[name])
-				self.subscriptions[name] = [];
-			self.subscriptions[name].push(callback);
+			if (!subscriptions[name])
+				subscriptions[name] = [];
+			subscriptions[name].push(callback);
 		};
 
 		self.unSubscribe = function(name, callback){
 			checkSubscribe();
 
-			if (!self.subscriptions[name])
+			if (!subscriptions[name])
 				throw new Error('Subscription not found');
 
-			self.subscriptions[name] = self.subscriptions[name].filter(s => s != callback);
+			subscriptions[name] = subscriptions[name].filter(s => s != callback);
 			throw new Error('Subscription not found');
 		};
 
@@ -342,7 +369,8 @@
 			get: (who) => invokeGet('/accounts/' + who),
 			update: (who, what) => invokePut('/accounts/' + who, what),
 			delete: (who) => invokeDelete('/accounts/' + who),
-			wipeData: (who) => invokePost('/accounts/' + who + '/wipe-data')
+			wipeData: (who) => invokePost('/accounts/' + who + '/wipe-data'),
+			startOnboarding: (who) => invokePost('/accounts/' + who + '/start-onboarding')
 		};
 
 		// Files
@@ -376,7 +404,7 @@
 			list: (name) => invokeGet('/keys?user=' + name),
 			get: (id) => invokeGet('/keys/' + encodeURIComponent(id)),
 			create: (key) => invokePost('/keys', {
-				key: key
+				key
 			})
 		};
 
@@ -384,13 +412,9 @@
 		self.labels = {
 			list: () => invokeGet('/labels'),
 			get: (id) => invokeGet('/labels/' + id),
-			create: (query) => invokePost('/labels', {
-				name: query.name
-			}),
+			create: (query) => invokePost('/labels', query),
 			delete: (id) => invokeDelete('/labels/' + id),
-			update: (id, query) => invokePut('/labels/' + id, {
-				name: query.name
-			})
+			update: (id, query) => invokePut('/labels/' + id, query)
 		};
 
 		// Threads

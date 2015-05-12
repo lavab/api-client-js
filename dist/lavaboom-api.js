@@ -70,56 +70,67 @@
 		self.url = url;
 		self.apiToken = apiToken;
 		self.transport = transport;
-		self.subscriptions = {};
-		self.handlers = {};
-		self.sockjs = null;
-		self.sockjsСounter = 0;
-		self.isConnected = false;
-		self.rc = 1;
+
+		var subscriptions = {};
+		var handlers = {};
+		var sockjs = null;
+		var sockjsСounter = 0;
+
+		var isConnected = false;
+		var rc = 1;
+
 		var defaultTimeout = 10000;
+		var onDisconnectHandler = null;
 
 		var subscribe = function () {
-			self.sockjs.send(JSON.stringify({
+			sockjs.send(JSON.stringify({
 				type: "subscribe",
 				token: self.authToken
 			}));
 		};
 
-		var connect = function (_ref) {
-			var timeout = _ref.timeout;
+		var connect = function () {
 			return new Promise(function (resolve, reject) {
-				if (!timeout) timeout = defaultTimeout;else defaultTimeout = timeout;
+				console.debug("sockjs: connecting, timeout", defaultTimeout);
 
-				console.debug("sockjs: connecting, timeout", timeout);
-
-				self.sockjs = new SockJS(url + "/ws");
-				self.sockjsСounter = 0;
-				self.handlers = {};
+				sockjs = new SockJS(url + "/ws");
+				sockjsСounter = 0;
+				handlers = {};
 
 				var connectionTimeout = setTimeout(function () {
 					reject(new Error("timeout"));
-				}, timeout);
+				}, defaultTimeout);
 
-				self.sockjs.onopen = function () {
-					if (Object.keys(self.subscriptions).length > 0) subscribe();
+				sockjs.onopen = function () {
+					if (Object.keys(subscriptions).length > 0) subscribe();
 
-					self.isConnected = true;
-					self.rc = 1;
+					isConnected = true;
+					rc = 1;
 
-					clearTimeout(connectionTimeout);
+					if (connectionTimeout) {
+						clearTimeout(connectionTimeout);
+						connectionTimeout = null;
+					}
+
+					console.debug("sockjs: connected");
 					resolve();
 				};
 
-				self.sockjs.onmessage = function (e) {
+				sockjs.onmessage = function (e) {
+					if (connectionTimeout) {
+						clearTimeout(connectionTimeout);
+						connectionTimeout = null;
+					}
+
 					var msg = JSON.parse(e.data);
 
 					switch (msg.type) {
 						case "response":
-							if (self.handlers[msg.id]) self.handlers[msg.id](msg);
+							if (handlers[msg.id]) handlers[msg.id](msg);
 							break;
 						default:
-							if (self.subscriptions[msg.type]) {
-								for (var _iterator = self.subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+							if (subscriptions[msg.type]) {
+								for (var _iterator = subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
 									var subscription = _step.value;
 									subscription(msg);
 								}
@@ -128,26 +139,33 @@
 					}
 				};
 
-				self.sockjs.onclose = function () {
-					console.debug("sockjs: it's dead Jim :()");
+				sockjs.onclose = function () {
+					console.debug("sockjs: it's dead Jim :()", onDisconnectHandler);
 
-					for (var _iterator = Object.keys(self.handlers)[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+					for (var _iterator = Object.keys(handlers)[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
 						var id = _step.value;
 						console.debug("sockjs: reject handler with id", id);
-						self.handlers[id]({
+						handlers[id]({
 							status: 598,
 							body: JSON.stringify({
 								message: "Disconnected from SockJS endpoint"
 							})
 						});
 					}
-					self.handlers = {};
-					self.sockjs = null;
-					self.isConnected = false;
+					handlers = {};
+					sockjs = null;
+					isConnected = false;
 
-					self.rc = self.rc < 16 ? self.rc * 2 : 1;
+					if (connectionTimeout) {
+						clearTimeout(connectionTimeout);
+						connectionTimeout = null;
+					}
 
-					var timeout = self.rc * 1000;
+					if (onDisconnectHandler) onDisconnectHandler();
+
+					rc = rc < 16 ? rc * 2 : 1;
+
+					var timeout = rc * 1000;
 					setTimeout(connect, timeout);
 
 					console.debug("sockjs: reconnect scheduled after ", timeout);
@@ -155,21 +173,9 @@
 			});
 		};
 
-		self.connect = function (_ref) {
-			var timeout = _ref.timeout;
-			return new Promise(function (resolve, reject) {
-				if (self.isConnected || self.transport != "sockjs") return resolve();
+		var request = function (method, path, data, options) {
+			if (!options) options = {};
 
-				connect({ timeout: timeout }).then(function (r) {
-					return resolve(r);
-				})["catch"](function (err) {
-					return reject(err);
-				});
-			});
-		};
-
-		self.request = function (method, path, data) {
-			var options = arguments[3] === undefined ? {} : arguments[3];
 			if (!options.headers) options.headers = {};
 
 			// Add a Content-Type to the request if we're sending a body
@@ -181,11 +187,12 @@
 
 			method = method.toUpperCase();
 			if (self.transport == "sockjs") {
-				if (self.sockjs) return new Promise(function (resolve, reject) {
-					self.sockjsСounter++;
+				if (sockjs) return new Promise(function (resolve, reject) {
+					sockjsСounter++;
+					var id = sockjsСounter.toString();
 
 					var msg = JSON.stringify({
-						id: self.sockjsСounter.toString(),
+						id: id,
 						type: "request",
 						method: method,
 						path: path,
@@ -193,9 +200,11 @@
 						headers: options.headers
 					});
 
-					self.sockjs.send(msg);
+					console.debug("sockjs: sending a message", msg);
 
-					self.handlers[self.sockjsСounter.toString()] = function (data) {
+					sockjs.send(msg);
+
+					handlers[id] = function (data) {
 						data.body = JSON.parse(data.body);
 
 						if (data.status >= 200 && data.status < 300) {
@@ -257,9 +266,9 @@
 		};
 
 		var checkSubscribe = function () {
-			if (!self.sockjs) throw new Error("Not using SockJS");
+			if (!sockjs) throw new Error("Not using SockJS");
 
-			if (!self.isConnected) throw new Error("Must be connected");
+			if (!isConnected) throw new Error("Must be connected");
 
 			if (!self.authToken) throw new Error("Not authenticated");
 		};
@@ -267,39 +276,60 @@
 		var invokeGet = function (path, data, options) {
 			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
 
-			return self.request("GET", path, null, options);
+			return request("GET", path, null, options);
 		};
 
 		var invokePost = function (path, data, options) {
-			return self.request("POST", path, data, options);
+			return request("POST", path, data, options);
 		};
 
 		var invokePut = function (path, data, options) {
-			return self.request("PUT", path, data, options);
+			return request("PUT", path, data, options);
 		};
 
 		var invokeDelete = function (path, data, options) {
 			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
 
-			return self.request("DELETE", path, null, options);
+			return request("DELETE", path, null, options);
+		};
+
+		self.connect = function (opts) {
+			return new Promise(function (resolve, reject) {
+				if (!opts) opts = {};
+
+				if (!opts.timeout) opts.timeout = defaultTimeout;else defaultTimeout = opts.timeout;
+				onDisconnectHandler = opts.onDisconnect ? opts.onDisconnect : null;
+
+				if (isConnected || self.transport != "sockjs") return resolve();
+
+				connect(opts).then(function (r) {
+					return resolve(r);
+				})["catch"](function (err) {
+					return reject(err);
+				});
+			});
+		};
+
+		self.isConnected = function () {
+			return isConnected;
 		};
 
 		// Subscription methods
 		self.subscribe = function (name, callback) {
 			checkSubscribe();
 
-			if (Object.keys(self.subscriptions).length < 1) subscribe();
+			if (Object.keys(subscriptions).length < 1) subscribe();
 
-			if (!self.subscriptions[name]) self.subscriptions[name] = [];
-			self.subscriptions[name].push(callback);
+			if (!subscriptions[name]) subscriptions[name] = [];
+			subscriptions[name].push(callback);
 		};
 
 		self.unSubscribe = function (name, callback) {
 			checkSubscribe();
 
-			if (!self.subscriptions[name]) throw new Error("Subscription not found");
+			if (!subscriptions[name]) throw new Error("Subscription not found");
 
-			self.subscriptions[name] = self.subscriptions[name].filter(function (s) {
+			subscriptions[name] = subscriptions[name].filter(function (s) {
 				return s != callback;
 			});
 			throw new Error("Subscription not found");
@@ -334,6 +364,9 @@
 			},
 			wipeData: function (who) {
 				return invokePost("/accounts/" + who + "/wipe-data");
+			},
+			startOnboarding: function (who) {
+				return invokePost("/accounts/" + who + "/start-onboarding");
 			}
 		};
 
@@ -415,17 +448,13 @@
 				return invokeGet("/labels/" + id);
 			},
 			create: function (query) {
-				return invokePost("/labels", {
-					name: query.name
-				});
+				return invokePost("/labels", query);
 			},
 			"delete": function (id) {
 				return invokeDelete("/labels/" + id);
 			},
 			update: function (id, query) {
-				return invokePut("/labels/" + id, {
-					name: query.name
-				});
+				return invokePut("/labels/" + id, query);
 			}
 		};
 

@@ -77,8 +77,10 @@
 						},
 						wipeData: function (whose) {
 							return $q.when(api.accounts.wipeData(whose));
-						}
-					},
+						},
+						startOnboarding: function (who) {
+							return $q.when(api.accounts.startOnboarding(who));
+						} },
 
 					// Files
 					files: {

@@ -56,7 +56,8 @@
 					get: (who) => $q.when(api.accounts.get(who)),
 					update: (who, what) => $q.when(api.accounts.update(who, what)),
 					delete: (who) => $q.when(api.accounts.delete(who)),
-					wipeData: (whose) => $q.when(api.accounts.wipeData(whose))
+					wipeData: (whose) => $q.when(api.accounts.wipeData(whose)),
+					startOnboarding: (who) => $q.when(api.accounts.startOnboarding(who)),
 				},
 
 				// Files

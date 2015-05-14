@@ -314,7 +314,6 @@
 			return isConnected;
 		};
 
-		// Subscription methods
 		self.subscribe = function (name, callback) {
 			checkSubscribe();
 
@@ -335,12 +334,16 @@
 			throw new Error("Subscription not found");
 		};
 
-		// API index
 		self.info = function () {
 			return invokeGet("/");
 		};
 
-		// Accounts
+		self.addresses = {
+			get: function () {
+				return invokeGet("/addresses");
+			}
+		};
+
 		self.accounts = {
 			create: {
 				register: function (query) {
@@ -370,7 +373,6 @@
 			}
 		};
 
-		// Files
 		self.files = {
 			list: function (query) {
 				return invokeGet("/files", query);
@@ -389,7 +391,6 @@
 			}
 		};
 
-		// Contacts
 		self.contacts = {
 			list: function () {
 				return invokeGet("/contacts");
@@ -408,7 +409,6 @@
 			}
 		};
 
-		// Emails
 		self.emails = {
 			list: function (query) {
 				return invokeGet("/emails", query);
@@ -424,7 +424,6 @@
 			}
 		};
 
-		// Keys
 		self.keys = {
 			list: function (name) {
 				return invokeGet("/keys?user=" + name);
@@ -439,7 +438,6 @@
 			}
 		};
 
-		// Labels
 		self.labels = {
 			list: function () {
 				return invokeGet("/labels");
@@ -458,7 +456,6 @@
 			}
 		};
 
-		// Threads
 		self.threads = {
 			list: function (query) {
 				return invokeGet("/threads", query);
@@ -474,7 +471,6 @@
 			}
 		};
 
-		// Tokens
 		self.tokens = {
 			getCurrent: function () {
 				return invokeGet("/tokens");

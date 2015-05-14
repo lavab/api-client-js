@@ -332,7 +332,6 @@
 
 		self.isConnected = () => isConnected;
 
-		// Subscription methods
 		self.subscribe = (name, callback) => {
 			checkSubscribe();
 
@@ -354,12 +353,14 @@
 			throw new Error('Subscription not found');
 		};
 
-		// API index
 		self.info = function() {
 			return invokeGet('/');
 		};
 
-		// Accounts
+		self.addresses = {
+			get: () => invokeGet('/addresses')
+		};
+
 		self.accounts = {
 			create: {
 				register: (query) => invokePost('/accounts', query),
@@ -373,7 +374,6 @@
 			startOnboarding: (who) => invokePost('/accounts/' + who + '/start-onboarding')
 		};
 
-		// Files
 		self.files = {
 			list: (query) => invokeGet('/files', query),
 			create: (query) => invokePost('/files', query),
@@ -382,7 +382,6 @@
 			delete: (id) => invokeDelete('/files/' + id)
 		};
 
-		// Contacts
 		self.contacts = {
 			list: () => invokeGet('/contacts'),
 			create: (query) => invokePost('/contacts', query),
@@ -391,7 +390,6 @@
 			delete: (id) => invokeDelete('/contacts/' + id)
 		};
 
-		// Emails
 		self.emails = {
 			list: (query) => invokeGet('/emails', query),
 			get: (id) => invokeGet('/emails/' + id),
@@ -399,7 +397,6 @@
 			delete: (id) => invokeDelete('/emails/' + id)
 		};
 
-		// Keys
 		self.keys = {
 			list: (name) => invokeGet('/keys?user=' + name),
 			get: (id) => invokeGet('/keys/' + encodeURIComponent(id)),
@@ -408,7 +405,6 @@
 			})
 		};
 
-		// Labels
 		self.labels = {
 			list: () => invokeGet('/labels'),
 			get: (id) => invokeGet('/labels/' + id),
@@ -417,7 +413,6 @@
 			update: (id, query) => invokePut('/labels/' + id, query)
 		};
 
-		// Threads
 		self.threads = {
 			list: (query) => invokeGet('/threads', query),
 			get: (id) => invokeGet('/threads/' + id),
@@ -425,7 +420,6 @@
 			delete: (id) => invokeDelete('/threads/' + id)
 		};
 
-		// Tokens
 		self.tokens = {
 			getCurrent: () => invokeGet('/tokens'),
 			get: id => invokeGet('/tokens/' + id),

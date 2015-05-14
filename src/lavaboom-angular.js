@@ -4,7 +4,6 @@
 
 (function() {
 	let createLavaboomAPIProvider = (transport) => function LavaboomAPIProvider() {
-		// Define provider's scope
 		let self = this;
 
 		self.url = null;
@@ -13,16 +12,13 @@
 
 		let api = null;
 
-		// LavaboomAPI definition
 		self.$get = function($q, $rootScope) {
-			// Initialize a new API token
 			if (!api)
 				api = Lavaboom.getInstance(self.url, self.specialToken, transport);
 
 			if (self.authToken)
 				api.authToken = self.authToken;
 
-			// Service definition
 			return {
 				setAuthToken: (newToken) => {
 					self.authToken = newToken;
@@ -33,7 +29,6 @@
 
 				isConnected: () => api.isConnected(),
 
-				// Subscription wrappers
 				subscribe: (name, callback) => api.subscribe(name, function(e) {
 					$rootScope.$apply(function() {
 						callback(e);
@@ -46,10 +41,12 @@
 					});
 				}),
 
-				// API index
 				info: () => $q.when(api.info()),
 
-				// Accounts
+				addresses: {
+					get: () => $q.when(api.addresses.get())
+				},
+
 				accounts: {
 					create: {
 						register: (query) => $q.when(api.accounts.create.register(query)),
@@ -63,7 +60,6 @@
 					startOnboarding: (who) => $q.when(api.accounts.startOnboarding(who))
 				},
 
-				// Files
 				files: {
 					list: (query) => $q.when(api.files.list(query)),
 					create: (query) => $q.when(api.files.create(query)),
@@ -72,7 +68,6 @@
 					delete: (id) => $q.when(api.files.delete(id))
 				},
 
-				// Contacts
 				contacts: {
 					list: () => $q.when(api.contacts.list()),
 					create: (query) => $q.when(api.contacts.create(query)),
@@ -81,7 +76,6 @@
 					delete: (id) => $q.when(api.contacts.delete(id))
 				},
 
-				// Emails
 				emails: {
 					list: (query) => $q.when(api.emails.list(query)),
 					get: (id) => $q.when(api.emails.get(id)),
@@ -89,7 +83,6 @@
 					delete: (id) => $q.when(api.emails.delete(id))
 				},
 
-				// Labels
 				labels: {
 					list: () => $q.when(api.labels.list()),
 					get: (query) => $q.when(api.labels.get(query)),
@@ -98,14 +91,12 @@
 					update: (id, query) => $q.when(api.labels.update(id, query))
 				},
 
-				// Keys
 				keys: {
 					list: (query) => $q.when(api.keys.list(query)),
 					get: (id) => $q.when(api.keys.get(id)),
 					create: (key) => $q.when(api.keys.create(key))
 				},
 
-				// Threads
 				threads: {
 					list: (query) => $q.when(api.threads.list(query)),
 					get: (id) => $q.when(api.threads.get(id)),
@@ -113,7 +104,6 @@
 					delete: (id) => $q.when(api.threads.delete(id))
 				},
 
-				// Tokens
 				tokens: {
 					getCurrent: () => $q.when(api.tokens.getCurrent()),
 					get: (id) => $q.when(api.tokens.get(id)),

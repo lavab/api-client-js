@@ -7,7 +7,6 @@
 (function () {
 	var createLavaboomAPIProvider = function (transport) {
 		return function LavaboomAPIProvider() {
-			// Define provider's scope
 			var self = this;
 
 			self.url = null;
@@ -16,14 +15,11 @@
 
 			var api = null;
 
-			// LavaboomAPI definition
 			self.$get = function ($q, $rootScope) {
-				// Initialize a new API token
 				if (!api) api = Lavaboom.getInstance(self.url, self.specialToken, transport);
 
 				if (self.authToken) api.authToken = self.authToken;
 
-				// Service definition
 				return {
 					setAuthToken: function (newToken) {
 						self.authToken = newToken;
@@ -38,7 +34,6 @@
 						return api.isConnected();
 					},
 
-					// Subscription wrappers
 					subscribe: function (name, callback) {
 						return api.subscribe(name, function (e) {
 							$rootScope.$apply(function () {
@@ -55,12 +50,16 @@
 						});
 					},
 
-					// API index
 					info: function () {
 						return $q.when(api.info());
 					},
 
-					// Accounts
+					addresses: {
+						get: function () {
+							return $q.when(api.addresses.get());
+						}
+					},
+
 					accounts: {
 						create: {
 							register: function (query) {
@@ -90,7 +89,6 @@
 						}
 					},
 
-					// Files
 					files: {
 						list: function (query) {
 							return $q.when(api.files.list(query));
@@ -109,7 +107,6 @@
 						}
 					},
 
-					// Contacts
 					contacts: {
 						list: function () {
 							return $q.when(api.contacts.list());
@@ -128,7 +125,6 @@
 						}
 					},
 
-					// Emails
 					emails: {
 						list: function (query) {
 							return $q.when(api.emails.list(query));
@@ -144,7 +140,6 @@
 						}
 					},
 
-					// Labels
 					labels: {
 						list: function () {
 							return $q.when(api.labels.list());
@@ -163,7 +158,6 @@
 						}
 					},
 
-					// Keys
 					keys: {
 						list: function (query) {
 							return $q.when(api.keys.list(query));
@@ -176,7 +170,6 @@
 						}
 					},
 
-					// Threads
 					threads: {
 						list: function (query) {
 							return $q.when(api.threads.list(query));
@@ -192,7 +185,6 @@
 						}
 					},
 
-					// Tokens
 					tokens: {
 						getCurrent: function () {
 							return $q.when(api.tokens.getCurrent());

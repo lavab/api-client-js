@@ -12,7 +12,7 @@
 
 		let api = null;
 
-		self.$get = function($q, $rootScope) {
+		self.$get = /*@ngInject*/ function($q, $rootScope) {
 			if (!api)
 				api = Lavaboom.getInstance(self.url, self.specialToken, transport);
 

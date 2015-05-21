@@ -18,7 +18,11 @@
   "homepage": "https://github.com/lavab/api-client-js",
   "devDependencies": {
     "gulp": "^3.8.10",
-    "gulp-6to5": "^3.0.0",
-    "gulp-jshint": "^1.9.2"
+    "gulp-babel": "^5.1.0",
+    "gulp-jshint": "^1.9.2",
+    "gulp-ng-annotate": "^0.5.3",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.2.0"
   }
 }

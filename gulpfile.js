@@ -1,10 +1,22 @@
-var gulp   = require("gulp");
-var to5    = require("gulp-6to5");
-var jshint = require("gulp-jshint");
+var gulp = require('gulp'),
+sourcemaps = require('gulp-sourcemaps'),
+uglify = require('gulp-uglify'),
+babel = require('gulp-babel'),
+jshint = require('gulp-jshint'),
+ng = require('gulp-ng-annotate'),
+rename = require('gulp-rename');
 
-gulp.task("default", function() {
-    gulp.src("src/*.js")
+gulp.task('default', function() {
+    gulp.src('src/*.js')
     	.pipe(jshint())
-    	.pipe(to5())
-    	.pipe(gulp.dest("dist"));
+		.pipe(sourcemaps.init())
+    	.pipe(babel())		
+		.pipe(ng())
+		.pipe(gulp.dest('dist'))
+		.pipe(rename({
+			extname: '.min.js'
+		}))
+		.pipe(uglify())
+		.pipe(sourcemaps.write('.'))
+    	.pipe(gulp.dest('dist'));
 });

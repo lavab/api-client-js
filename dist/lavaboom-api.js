@@ -1,17 +1,17 @@
-"use strict";
-
 /* jshint esnext: true */
 /* global ActiveXObject */
 /* global SockJS */
 
+'use strict';
+
 (function () {
 	/* Helper functions */
 	function getAjaxRequest() {
-		if (typeof XMLHttpRequest !== "undefined") {
+		if (typeof XMLHttpRequest !== 'undefined') {
 			return new XMLHttpRequest();
 		}
 
-		var versions = ["MSXML2.XmlHttp.5.0", "MSXML2.XmlHttp.4.0", "MSXML2.XmlHttp.3.0", "MSXML2.XmlHttp.2.0", "Microsoft.XmlHttp"];
+		var versions = ['MSXML2.XmlHttp.5.0', 'MSXML2.XmlHttp.4.0', 'MSXML2.XmlHttp.3.0', 'MSXML2.XmlHttp.2.0', 'Microsoft.XmlHttp'];
 
 		var xhr = null;
 		for (var i = 0; i < versions.length; i++) {
@@ -31,13 +31,13 @@
 			return headers;
 		}
 
-		var pairs = input.split("\r\n");
+		var pairs = input.split('\r\n');
 
 		for (var i = 0; i < pairs.length; i++) {
 			var pair = pairs[i];
 
 			// Does same thing as strings.SplitN in Go
-			var index = pair.indexOf(": ");
+			var index = pair.indexOf(': ');
 			if (index > -1) {
 				var key = pair.substring(0, index);
 				var val = pair.substring(index + 2);
@@ -50,22 +50,22 @@
 
 	function encodeQueryData(data) {
 		return Object.keys(data).map(function (k) {
-			return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
-		}).join("&");
+			return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]);
+		}).join('&');
 	}
 
 	/* API client class */
 
-	var Lavaboom = function (url, apiToken, transport) {
+	var Lavaboom = function Lavaboom(url, apiToken, transport) {
 		var self = this;
 
-		if (!url) throw new Error("URL required!");
+		if (!url) throw new Error('URL required!');
 
-		if (!transport) throw new Error("Transport required(http or sockjs)!");
+		if (!transport) throw new Error('Transport required(http or sockjs)!');
 
-		if (typeof Promise === "undefined") throw new Error("Promise implementation required!");
+		if (typeof Promise === 'undefined') throw new Error('Promise implementation required!');
 
-		if (transport == "sockjs" && typeof SockJS === "undefined") throw new Error("Sockjs transport is required but not available!");
+		if (transport == 'sockjs' && typeof SockJS === 'undefined') throw new Error('Sockjs transport is required but not available!');
 
 		self.url = url;
 		self.apiToken = apiToken;
@@ -82,23 +82,23 @@
 		var defaultTimeout = 10000;
 		var onDisconnectHandler = null;
 
-		var subscribe = function () {
+		var subscribe = function subscribe() {
 			sockjs.send(JSON.stringify({
-				type: "subscribe",
+				type: 'subscribe',
 				token: self.authToken
 			}));
 		};
 
-		var connect = function () {
+		var connect = function connect() {
 			return new Promise(function (resolve, reject) {
-				console.debug("sockjs: connecting, timeout", defaultTimeout);
+				console.debug('sockjs: connecting, timeout', defaultTimeout);
 
-				sockjs = new SockJS(url + "/ws");
+				sockjs = new SockJS(url + '/ws');
 				sockjsСounter = 0;
 				handlers = {};
 
 				var connectionTimeout = setTimeout(function () {
-					reject(new Error("timeout"));
+					reject(new Error('timeout'));
 				}, defaultTimeout);
 
 				sockjs.onopen = function () {
@@ -112,7 +112,7 @@
 						connectionTimeout = null;
 					}
 
-					console.debug("sockjs: connected");
+					console.debug('sockjs: connected');
 					resolve();
 				};
 
@@ -125,14 +125,34 @@
 					var msg = JSON.parse(e.data);
 
 					switch (msg.type) {
-						case "response":
+						case 'response':
 							if (handlers[msg.id]) handlers[msg.id](msg);
 							break;
 						default:
 							if (subscriptions[msg.type]) {
-								for (var _iterator = subscriptions[msg.type][Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
-									var subscription = _step.value;
-									subscription(msg);
+								var _iteratorNormalCompletion = true;
+								var _didIteratorError = false;
+								var _iteratorError = undefined;
+
+								try {
+									for (var _iterator = subscriptions[msg.type][Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+										var subscription = _step.value;
+
+										subscription(msg);
+									}
+								} catch (err) {
+									_didIteratorError = true;
+									_iteratorError = err;
+								} finally {
+									try {
+										if (!_iteratorNormalCompletion && _iterator['return']) {
+											_iterator['return']();
+										}
+									} finally {
+										if (_didIteratorError) {
+											throw _iteratorError;
+										}
+									}
 								}
 							}
 							break;
@@ -140,18 +160,39 @@
 				};
 
 				sockjs.onclose = function () {
-					console.debug("sockjs: it's dead Jim :()", onDisconnectHandler);
+					console.debug('sockjs: it\'s dead Jim :()', onDisconnectHandler);
 
-					for (var _iterator = Object.keys(handlers)[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
-						var id = _step.value;
-						console.debug("sockjs: reject handler with id", id);
-						handlers[id]({
-							status: 598,
-							body: JSON.stringify({
-								message: "Disconnected from SockJS endpoint"
-							})
-						});
+					var _iteratorNormalCompletion2 = true;
+					var _didIteratorError2 = false;
+					var _iteratorError2 = undefined;
+
+					try {
+						for (var _iterator2 = Object.keys(handlers)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+							var id = _step2.value;
+
+							console.debug('sockjs: reject handler with id', id);
+							handlers[id]({
+								status: 598,
+								body: JSON.stringify({
+									message: 'Disconnected from SockJS endpoint'
+								})
+							});
+						}
+					} catch (err) {
+						_didIteratorError2 = true;
+						_iteratorError2 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+								_iterator2['return']();
+							}
+						} finally {
+							if (_didIteratorError2) {
+								throw _iteratorError2;
+							}
+						}
 					}
+
 					handlers = {};
 					sockjs = null;
 					isConnected = false;
@@ -168,39 +209,39 @@
 					var timeout = rc * 1000;
 					setTimeout(connect, timeout);
 
-					console.debug("sockjs: reconnect scheduled after ", timeout);
+					console.debug('sockjs: reconnect scheduled after ', timeout);
 				};
 			});
 		};
 
-		var request = function (method, path, data, options) {
+		var request = function request(method, path, data, options) {
 			if (!options) options = {};
 
 			if (!options.headers) options.headers = {};
 
 			// Add a Content-Type to the request if we're sending a body
-			if (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT") options.headers["Content-Type"] = "application/json;charset=utf-8";
+			if (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT') options.headers['Content-Type'] = 'application/json;charset=utf-8';
 
-			if (self.authToken) options.headers.Authorization = "Bearer " + self.authToken;
+			if (self.authToken) options.headers.Authorization = 'Bearer ' + self.authToken;
 
-			if (self.apiToken) options.headers["X-Lavaboom-Token"] = self.apiToken;
+			if (self.apiToken) options.headers['X-Lavaboom-Token'] = self.apiToken;
 
 			method = method.toUpperCase();
-			if (self.transport == "sockjs") {
+			if (self.transport == 'sockjs') {
 				if (sockjs) return new Promise(function (resolve, reject) {
 					sockjsСounter++;
 					var id = sockjsСounter.toString();
 
 					var msg = JSON.stringify({
 						id: id,
-						type: "request",
+						type: 'request',
 						method: method,
 						path: path,
 						body: JSON.stringify(data),
 						headers: options.headers
 					});
 
-					console.debug("sockjs: sending a message", msg);
+					console.debug('sockjs: sending a message', msg);
 
 					sockjs.send(msg);
 
@@ -219,7 +260,7 @@
 					reject({
 						status: 597,
 						body: JSON.stringify({
-							message: "No connection to SockJS endpoint"
+							message: 'No connection to SockJS endpoint'
 						})
 					});
 				});
@@ -228,7 +269,7 @@
 			return new Promise(function (resolve, reject) {
 				var req = getAjaxRequest();
 
-				if (!req) return reject(new Error("Ajax isn't supported!"));
+				if (!req) return reject(new Error('Ajax isn\'t supported!'));
 
 				// Start the request. Last param is whether it should be performed async or not
 				req.open(method, url + path, true);
@@ -258,39 +299,61 @@
 					}
 				};
 
-				for (var _iterator = Object.keys(options.headers)[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
-					var key = _step.value;
-					req.setRequestHeader(key, options.headers[key]);
-				}req.send(JSON.stringify(data));
+				var _iteratorNormalCompletion3 = true;
+				var _didIteratorError3 = false;
+				var _iteratorError3 = undefined;
+
+				try {
+					for (var _iterator3 = Object.keys(options.headers)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+						var key = _step3.value;
+
+						req.setRequestHeader(key, options.headers[key]);
+					}
+				} catch (err) {
+					_didIteratorError3 = true;
+					_iteratorError3 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+							_iterator3['return']();
+						}
+					} finally {
+						if (_didIteratorError3) {
+							throw _iteratorError3;
+						}
+					}
+				}
+
+				req.send(JSON.stringify(data));
 			});
 		};
 
-		var checkSubscribe = function () {
-			if (!sockjs) throw new Error("Not using SockJS");
+		var checkSubscribe = function checkSubscribe() {
+			if (!sockjs) throw new Error('Not using SockJS');
 
-			if (!isConnected) throw new Error("Must be connected");
+			if (!isConnected) throw new Error('Must be connected');
 
-			if (!self.authToken) throw new Error("Not authenticated");
+			if (!self.authToken) throw new Error('Not authenticated');
 		};
 
-		var invokeGet = function (path, data, options) {
-			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
+		var invokeGet = function invokeGet(path, data, options) {
+			if (data && Object.keys(data).length > 0) path += '?' + encodeQueryData(data);
 
-			return request("GET", path, null, options);
+			return request('GET', path, null, options);
 		};
 
-		var invokePost = function (path, data, options) {
-			return request("POST", path, data, options);
+		var invokePost = function invokePost(path, data, options) {
+			return request('POST', path, data, options);
 		};
 
-		var invokePut = function (path, data, options) {
-			return request("PUT", path, data, options);
+		var invokePut = function invokePut(path, data, options) {
+			return request('PUT', path, data, options);
 		};
 
-		var invokeDelete = function (path, data, options) {
-			if (data && Object.keys(data).length > 0) path += "?" + encodeQueryData(data);
+		var invokeDelete = function invokeDelete(path, data, options) {
+			if (data && Object.keys(data).length > 0) path += '?' + encodeQueryData(data);
 
-			return request("DELETE", path, null, options);
+			return request('DELETE', path, null, options);
 		};
 
 		self.connect = function (opts) {
@@ -300,11 +363,11 @@
 				if (!opts.timeout) opts.timeout = defaultTimeout;else defaultTimeout = opts.timeout;
 				onDisconnectHandler = opts.onDisconnect ? opts.onDisconnect : null;
 
-				if (isConnected || self.transport != "sockjs") return resolve();
+				if (isConnected || self.transport != 'sockjs') return resolve();
 
 				connect(opts).then(function (r) {
 					return resolve(r);
-				})["catch"](function (err) {
+				})['catch'](function (err) {
 					return reject(err);
 				});
 			});
@@ -326,166 +389,166 @@
 		self.unSubscribe = function (name, callback) {
 			checkSubscribe();
 
-			if (!subscriptions[name]) throw new Error("Subscription not found");
+			if (!subscriptions[name]) throw new Error('Subscription not found');
 
 			subscriptions[name] = subscriptions[name].filter(function (s) {
 				return s != callback;
 			});
-			throw new Error("Subscription not found");
+			throw new Error('Subscription not found');
 		};
 
 		self.info = function () {
-			return invokeGet("/");
+			return invokeGet('/');
 		};
 
 		self.addresses = {
-			get: function () {
-				return invokeGet("/addresses");
+			get: function get() {
+				return invokeGet('/addresses');
 			}
 		};
 
 		self.accounts = {
 			create: {
-				register: function (query) {
-					return invokePost("/accounts", query);
+				register: function register(query) {
+					return invokePost('/accounts', query);
 				},
-				verify: function (query) {
-					return invokePost("/accounts", query);
+				verify: function verify(query) {
+					return invokePost('/accounts', query);
 				},
-				setup: function (query) {
-					return invokePost("/accounts", query);
+				setup: function setup(query) {
+					return invokePost('/accounts', query);
 				}
 			},
-			get: function (who) {
-				return invokeGet("/accounts/" + who);
+			get: function get(who) {
+				return invokeGet('/accounts/' + who);
 			},
-			update: function (who, what) {
-				return invokePut("/accounts/" + who, what);
+			update: function update(who, what) {
+				return invokePut('/accounts/' + who, what);
 			},
-			"delete": function (who) {
-				return invokeDelete("/accounts/" + who);
+			'delete': function _delete(who) {
+				return invokeDelete('/accounts/' + who);
 			},
-			wipeData: function (who) {
-				return invokePost("/accounts/" + who + "/wipe-data");
+			wipeData: function wipeData(who) {
+				return invokePost('/accounts/' + who + '/wipe-data');
 			},
-			startOnboarding: function (who) {
-				return invokePost("/accounts/" + who + "/start-onboarding");
+			startOnboarding: function startOnboarding(who) {
+				return invokePost('/accounts/' + who + '/start-onboarding');
 			}
 		};
 
 		self.files = {
-			list: function (query) {
-				return invokeGet("/files", query);
+			list: function list(query) {
+				return invokeGet('/files', query);
 			},
-			create: function (query) {
-				return invokePost("/files", query);
+			create: function create(query) {
+				return invokePost('/files', query);
 			},
-			get: function (id) {
-				return invokeGet("/files/" + id);
+			get: function get(id) {
+				return invokeGet('/files/' + id);
 			},
-			update: function (id, query) {
-				return invokePut("/files/" + id, query);
+			update: function update(id, query) {
+				return invokePut('/files/' + id, query);
 			},
-			"delete": function (id) {
-				return invokeDelete("/files/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/files/' + id);
 			}
 		};
 
 		self.contacts = {
-			list: function () {
-				return invokeGet("/contacts");
+			list: function list() {
+				return invokeGet('/contacts');
 			},
-			create: function (query) {
-				return invokePost("/contacts", query);
+			create: function create(query) {
+				return invokePost('/contacts', query);
 			},
-			get: function (id) {
-				return invokeGet("/contacts/" + id);
+			get: function get(id) {
+				return invokeGet('/contacts/' + id);
 			},
-			update: function (id, query) {
-				return invokePut("/contacts/" + id, query);
+			update: function update(id, query) {
+				return invokePut('/contacts/' + id, query);
 			},
-			"delete": function (id) {
-				return invokeDelete("/contacts/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/contacts/' + id);
 			}
 		};
 
 		self.emails = {
-			list: function (query) {
-				return invokeGet("/emails", query);
+			list: function list(query) {
+				return invokeGet('/emails', query);
 			},
-			get: function (id) {
-				return invokeGet("/emails/" + id);
+			get: function get(id) {
+				return invokeGet('/emails/' + id);
 			},
-			create: function (query) {
-				return invokePost("/emails", query);
+			create: function create(query) {
+				return invokePost('/emails', query);
 			},
-			"delete": function (id) {
-				return invokeDelete("/emails/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/emails/' + id);
 			}
 		};
 
 		self.keys = {
-			list: function (name) {
-				return invokeGet("/keys?user=" + name);
+			list: function list(name) {
+				return invokeGet('/keys?user=' + name);
 			},
-			get: function (id) {
-				return invokeGet("/keys/" + encodeURIComponent(id));
+			get: function get(id) {
+				return invokeGet('/keys/' + encodeURIComponent(id));
 			},
-			create: function (key) {
-				return invokePost("/keys", {
+			create: function create(key) {
+				return invokePost('/keys', {
 					key: key
 				});
 			}
 		};
 
 		self.labels = {
-			list: function () {
-				return invokeGet("/labels");
+			list: function list() {
+				return invokeGet('/labels');
 			},
-			get: function (id) {
-				return invokeGet("/labels/" + id);
+			get: function get(id) {
+				return invokeGet('/labels/' + id);
 			},
-			create: function (query) {
-				return invokePost("/labels", query);
+			create: function create(query) {
+				return invokePost('/labels', query);
 			},
-			"delete": function (id) {
-				return invokeDelete("/labels/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/labels/' + id);
 			},
-			update: function (id, query) {
-				return invokePut("/labels/" + id, query);
+			update: function update(id, query) {
+				return invokePut('/labels/' + id, query);
 			}
 		};
 
 		self.threads = {
-			list: function (query) {
-				return invokeGet("/threads", query);
+			list: function list(query) {
+				return invokeGet('/threads', query);
 			},
-			get: function (id) {
-				return invokeGet("/threads/" + id);
+			get: function get(id) {
+				return invokeGet('/threads/' + id);
 			},
-			update: function (id, query) {
-				return invokePut("/threads/" + id, query);
+			update: function update(id, query) {
+				return invokePut('/threads/' + id, query);
 			},
-			"delete": function (id) {
-				return invokeDelete("/threads/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/threads/' + id);
 			}
 		};
 
 		self.tokens = {
-			getCurrent: function () {
-				return invokeGet("/tokens");
+			getCurrent: function getCurrent() {
+				return invokeGet('/tokens');
 			},
-			get: function (id) {
-				return invokeGet("/tokens/" + id);
+			get: function get(id) {
+				return invokeGet('/tokens/' + id);
 			},
-			create: function (query) {
-				return invokePost("/tokens", query);
+			create: function create(query) {
+				return invokePost('/tokens', query);
 			},
-			deleteCurrent: function () {
-				return invokeDelete("/tokens");
+			deleteCurrent: function deleteCurrent() {
+				return invokeDelete('/tokens');
 			},
-			"delete": function (id) {
-				return invokeDelete("/tokens/" + id);
+			'delete': function _delete(id) {
+				return invokeDelete('/tokens/' + id);
 			}
 		};
 	};
@@ -493,7 +556,7 @@
 	var instances = {};
 
 	Lavaboom.getInstance = function (url, apiToken, transport) {
-		var key = "" + url + "." + transport;
+		var key = '' + url + '.' + transport;
 		if (!instances[key]) instances[key] = new Lavaboom(url, apiToken, transport);
 		return instances[key];
 	};
